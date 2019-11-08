@@ -5,6 +5,7 @@
 
 #include "Tokenizer.h"
 #include "DocExtractor.h"
+#include "DocProcessor.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -29,7 +30,7 @@ void print_file_documents(const std::string& path)
 {
 	Tokenizer tokenizer;
 	DocExtractor docextractor([] (DocumentData& doc) {
-		std::cout << doc.DOCNO[0] << std::endl;
+		// std::cout << doc.DOCNO[0] << std::endl;
 	});
 
 	std::ifstream is(path);
@@ -41,6 +42,30 @@ void print_file_documents(const std::string& path)
 	} while (is);
 }
 
+typedef void (*TFID_callback) (TFID_t TFID);
+
+TFID_callback callbackforTFID;
+
+void process_file(const std::string& path, TFID_callback callback)
+{
+	callbackforTFID = callback;
+
+	Tokenizer tokenizer;
+	DocExtractor docextractor([] (DocumentData& doc) {
+		TFID_t TFID = produceTFID(doc);
+		callbackforTFID(TFID);
+	});
+
+	std::ifstream is(path);
+	if (!is) throw std::exception("");
+
+	for(;;)
+	{
+		std::string token = tokenizer.extract_token(is);
+		if (token.empty()) break;
+		docextractor.parseToken(token);
+	}
+}
 
 int main(int argc, char * argv[])
 {
@@ -55,8 +80,11 @@ int main(int argc, char * argv[])
 	{
 		std::cout << p.path() << '\n';
 		// print_file_tokens(p.path().string());
-		print_file_documents(p.path().string());
-		break;
+		// print_file_documents(p.path().string());
+		process_file(p.path().string(), [] (TFID_t TFID) {
+			std::cout << TFID.size() << std::endl;
+		});
+		// break;
 	}
 	
 	return 0;
