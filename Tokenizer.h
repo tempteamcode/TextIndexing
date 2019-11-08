@@ -3,16 +3,52 @@
 #include <string>
 #include <sstream>
 
+
+/**
+* Extract the tokens of a string.
+**/
 class Tokenizer
 {
 public:
 	Tokenizer();
 
-	std::string extract_token(std::istream& is);
+	std::string extract(std::istream& is);
 
 private:
+	/// Look up table of valid litteral tokens
 	bool char_is_text[256] = {};
 };
+
+struct Token {
+	
+	enum TokenType {
+		LITERAL,
+		NUMBER,
+		MONEY,
+		PERCENTAGE,
+		PUNCTUATION,
+		TAG
+	};
+
+	std::string word;
+	double numberValue;
+	char numberUnit;
+
+	TokenType type;
+
+	Token(std::string & word, TokenType type)
+		: word(word), type(type) 
+	{}
+
+	Token(double numberValue, char numberUnit = ' ', TokenType type = NUMBER)
+		: numberValue(numberValue), numberUnit(numberUnit), type(type)
+	{}
+
+};
+
+
+
+
 
 inline Tokenizer::Tokenizer()
 {
@@ -26,12 +62,15 @@ inline Tokenizer::Tokenizer()
 		char_is_text[c] = true;
 }
 
-inline std::string Tokenizer::extract_token(std::istream& is)
+inline std::string Tokenizer::extract( std::istream& is )
 {
 	std::ostringstream token;
 
 	char c = { 0 };
-	while (is.get(c) && !char_is_text[c] && c != '<');
+	while (is.get(c) && !char_is_text[c] && c != '<')
+	{
+		if (c == ';') return std::string{ c };
+	}
 	if (is)
 	{
 		if (c == '<')

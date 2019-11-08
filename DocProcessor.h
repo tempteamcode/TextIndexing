@@ -2,7 +2,7 @@
 
 #include "DocExtractor.h"
 
-typedef std::map<std::string, int> TFID_t;
+typedef std::map<std::string, unsigned int> TFID_t;
 
 TFID_t produceTFID(const DocumentData& document)
 {

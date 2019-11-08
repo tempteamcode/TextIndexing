@@ -20,7 +20,7 @@ void print_file_tokens(const std::string& path)
 	std::string token;
 	do
 	{
-		token = tokenizer.extract_token(is);
+		token = tokenizer.extract(is);
 
 		std::cout << token << std::endl;
 
@@ -39,7 +39,7 @@ void print_file_documents(const std::string& path)
 
 	do
 	{
-		docextractor.parseToken(tokenizer.extract_token(is));
+		docextractor.parseToken(tokenizer.extract(is));
 	} while (is);
 }
 
@@ -64,7 +64,7 @@ void process_file(const std::string& path, TFID_callback callback)
 
 	for(;;)
 	{
-		std::string token = tokenizer.extract_token(is);
+		std::string token = tokenizer.extract(is);
 		if (token.empty()) break;
 		docextractor.parseToken(token);
 	}
