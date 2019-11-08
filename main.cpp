@@ -3,65 +3,10 @@
 #include <iostream>
 #include <filesystem>
 
-#include <string>
-#include <sstream>
+#include "Tokenizer.h"
+#include "DocExtractor.h"
 
 namespace fs = std::experimental::filesystem;
-
-
-class Tokenizer
-{
-public:
-	Tokenizer();
-
-	std::string extract_token(std::istream& is);
-
-private:
-	bool char_is_text[256] = {};
-};
-
-Tokenizer::Tokenizer()
-{
-	for (char c = '0'; c <= '9'; c++)
-		char_is_text[c] = true;
-
-	for (char c = 'a'; c <= 'z'; c++)
-		char_is_text[c] = true;
-
-	for (char c = 'A'; c <= 'Z'; c++)
-		char_is_text[c] = true;
-}
-
-std::string Tokenizer::extract_token(std::istream& is)
-{
-	std::ostringstream token;
-
-	char c = {0};
-	while (is.get(c) && !char_is_text[c] && c != '<');
-	if (is)
-	{
-		if (c == '<')
-		{
-			for (;;)
-			{
-				token << c;
-				if (c == '>') break;
-				if (!is.get(c)) break;
-			}
-		}
-		else
-		{
-			for (;;)
-			{
-				token << c;
-				if (!is.get(c)) break;
-				if (!char_is_text[c]) break;
-			}
-		}
-	}
-
-	return token.str();
-}
 
 void print_file_tokens(const std::string& path)
 {
@@ -80,6 +25,22 @@ void print_file_tokens(const std::string& path)
 	} while (token.size() != 0);
 }
 
+void print_file_documents(const std::string& path)
+{
+	Tokenizer tokenizer;
+	DocExtractor docextractor([] (DocumentData& doc) {
+		std::cout << doc.DOCNO[0] << std::endl;
+	});
+
+	std::ifstream is(path);
+	if (!is) throw std::exception("");
+
+	do
+	{
+		docextractor.parseToken(tokenizer.extract_token(is));
+	} while (is);
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -93,7 +54,8 @@ int main(int argc, char * argv[])
 	for (auto& p : fs::directory_iterator("latimes/"))
 	{
 		std::cout << p.path() << '\n';
-		print_file_tokens(p.path().string());
+		// print_file_tokens(p.path().string());
+		print_file_documents(p.path().string());
 		break;
 	}
 	
