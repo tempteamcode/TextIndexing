@@ -1,7 +1,15 @@
+//#define USE_EXPERIMENTAL_FILESYSTEM
+
+
+
 
 #include <fstream>
 #include <iostream>
-#include <filesystem>
+#ifdef USE_EXPERIMENTAL_FILESYSTEM
+	#include <experimental/filesystem>
+#else
+	#include <filesystem>
+#endif
 
 #include "Tokenizer.h"
 #include "DocExtractor.h"
@@ -15,7 +23,7 @@ void print_file_tokens(const std::string& path)
 	Tokenizer tokenizer;
 
 	std::ifstream is(path);
-	if (!is) throw std::exception("");
+	if (!is) throw "error reading file at" + path;
 
 	std::string token;
 	do
@@ -35,7 +43,7 @@ void print_file_documents(const std::string& path)
 	});
 
 	std::ifstream is(path);
-	if (!is) throw std::exception("");
+	if (!is) throw "error reading file at" + path;
 
 	do
 	{
@@ -60,7 +68,7 @@ void process_file(const std::string& path, TFID_callback callback)
 	});
 
 	std::ifstream is(path);
-	if (!is) throw std::exception("");
+	if (!is) throw "error reading file at" + path;
 
 	for(;;)
 	{

@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build text indexer",
+        "type": "shell",
+        "command": "g++",
+        "args": ["-g", "-o", "Text indexer", "main.cpp"],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }

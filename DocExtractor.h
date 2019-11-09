@@ -27,7 +27,7 @@ class DocExtractor
 public:
 	DocExtractor(DocExtractorCallback callback) : callback(callback) {};
 
-	void parseToken(std::string& token);
+	void parseToken( const std::string & token );
 
 private:
 	DocExtractorCallback callback;
@@ -63,7 +63,7 @@ bool starts_with(std::string test, std::string begin)
 	return test.substr(0, begin.length()) == begin;
 }
 
-void DocExtractor::parseToken(std::string& token)
+void DocExtractor::parseToken(const std::string & token)
 {
 	if (token[0] == '<')
 	{
