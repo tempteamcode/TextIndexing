@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 
 struct Token {
@@ -158,7 +159,7 @@ inline Token Tokenizer::extractToken( std::istream & is ) {
 	{
 		std::string tokenStr;
 		if( isNextTokenASeparator( is, tokenStr ) ) {
-			is.ignore( tokenStr.length );
+			is.ignore( tokenStr.length() );
 			return Token( tokenStr, Token::SEPARATOR );
 		}
 	}
@@ -196,7 +197,7 @@ inline Token Tokenizer::extractToken( std::istream & is ) {
 			}
 			std::string tokenStr;
 			if( isNextTokenASeparator( is, tokenStr ) ) {
-				is.ignore( tokenStr.length );
+				is.ignore( tokenStr.length() );
 				return Token( tokenStr, Token::SEPARATOR );
 			} else {
 				tokenSs << c;

@@ -1,22 +1,28 @@
 //#define USE_EXPERIMENTAL_FILESYSTEM
-
+#define USE_FILESYTEM
+//#define USE_CUSTOM_FILESYSTEM
 
 
 
 #include <fstream>
 #include <iostream>
-#ifdef USE_EXPERIMENTAL_FILESYSTEM
-	#include <experimental/filesystem>
-#else
-	#include <filesystem>
-#endif
+#include <stdlib.h>
 
 #include "Tokenizer.h"
 #include "DocExtractor.h"
 #include "DocProcessor.h"
 #include "InvertedFileWriter.h"
 
-namespace fs = std::experimental::filesystem;
+#if defined( USE_EXPERIMENTAL_FILESYSTEM )
+	#include <experimental/filesystem>
+	namespace fs = std::experimental::filesystem;
+#elif defined( USE_FILESYTEM )
+	#include <filesystem>
+	namespace fs = std::filesystem;
+#else
+	namespace fs = std;
+#endif
+
 
 void print_file_tokens(const std::string& path)
 {
