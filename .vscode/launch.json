@@ -8,7 +8,7 @@
             "name": "Text indexer Launcher",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/TextIndexer.exe",
+            "program": "${workspaceFolder}/Text_indexer.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

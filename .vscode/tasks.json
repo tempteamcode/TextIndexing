@@ -5,7 +5,7 @@
         "label": "build text indexer",
         "type": "shell",
         "command": "g++",
-        "args": ["-g", "-o", "Text indexer", "main.cpp"],
+        "args": ["-std=c++17", "-g", "-o", "Text_indexer", "main.cpp"],
         "group": {
           "kind": "build",
           "isDefault": true
