@@ -59,9 +59,9 @@ public:
 	bool isNextTokenASeparator( std::istream & is, std::string & sep );
 
 private:
-	/// Look up table of valid litteral tokens
 	std::vector< std::string > separators;
 	
+	/// Look up table of valid litteral tokens
 	bool validTextCharLUT[256] = {};
 	void initializeLUT( );
 	void initializeSeparators();
@@ -158,7 +158,7 @@ inline Token Tokenizer::extractToken( std::istream & is ) {
 	{
 		std::string tokenStr;
 		if( isNextTokenASeparator( is, tokenStr ) ) {
-			is.ignore( tokenStr.length );
+			is.ignore( tokenStr.length() );
 			return Token( tokenStr, Token::SEPARATOR );
 		}
 	}
@@ -196,7 +196,7 @@ inline Token Tokenizer::extractToken( std::istream & is ) {
 			}
 			std::string tokenStr;
 			if( isNextTokenASeparator( is, tokenStr ) ) {
-				is.ignore( tokenStr.length );
+				is.ignore( tokenStr.length() );
 				return Token( tokenStr, Token::SEPARATOR );
 			} else {
 				tokenSs << c;
@@ -213,20 +213,19 @@ inline Token Tokenizer::extractToken( std::istream & is ) {
 }
 
 
-inline std::string Tokenizer::extract( std::istream& is )
+inline std::string Tokenizer::extract(std::istream& is)
 {
-	std::ostringstream token;
+	char c;
 
-	char c = { 0 };
-
-	while( is.get(c) && !isValidTextChar( c ) ) {
-		if( c == '<' ) 	break;
-		if( c == ';') 	return std::string{ c };
+	while (is.get(c) && !isValidTextChar(c)) {
+		if (c == '<') break;
+		if (c == ';') return std::string{c};
 	}
 
-
-	if (!is) return token.str();
-		
+	if (!is) return std::string{};
+	
+	std::ostringstream token;
+	
 	if (c == '<')
 	{
 		for (;;)

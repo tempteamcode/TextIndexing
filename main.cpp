@@ -1,54 +1,53 @@
-//#define USE_EXPERIMENTAL_FILESYSTEM
-
-
-
-
 #include <fstream>
 #include <iostream>
-#ifdef USE_EXPERIMENTAL_FILESYSTEM
-	#include <experimental/filesystem>
-#else
+
+#if __cplusplus > 201703L
+// built with C++20 support
 	#include <filesystem>
+	namespace fs = std::filesystem;
+#else
+// built with C++11, C++14, C++17 support
+	#include <experimental/filesystem>
+	namespace fs = std::experimental::filesystem;
 #endif
 
 #include "Tokenizer.h"
-#include "DocExtractor.h"
-#include "DocProcessor.h"
+#include "DocumentExtractor.h"
+#include "DocumentParser.h"
 #include "InvertedFileWriter.h"
 
-namespace fs = std::experimental::filesystem;
 
 void print_file_tokens(const std::string& path)
 {
 	Tokenizer tokenizer;
 
 	std::ifstream is(path);
-	if (!is) throw "error reading file at" + path;
+	if (!is) throw "error reading file '" + path + "'";
 
-	std::string token;
-	do
-	{
-		token = tokenizer.extract(is);
-
+	for (;;) {
+		std::string token = tokenizer.extract(is);
+		if (token.empty()) break;
 		std::cout << token << std::endl;
-
-	} while (token.size() != 0);
+	}
 }
 
 void print_file_documents(const std::string& path)
 {
 	Tokenizer tokenizer;
-	DocExtractor docextractor([] (DocumentData& doc) {
-		std::cout << doc.DOCNO[0] << std::endl;
-	});
+	DocumentExtractor docextractor;
 
 	std::ifstream is(path);
-	if (!is) throw "error reading file at" + path;
+	if (!is) throw "error reading file '" + path + "'";
 
-	do
-	{
-		docextractor.parseToken(tokenizer.extract(is));
-	} while (is);
+	for (;;) {
+		std::string token = tokenizer.extract(is);
+		if (token.empty()) break;
+		docextractor.parseToken(token);
+	}
+
+	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {
+		std::cout << document.DOCNO << std::endl;
+	});
 }
 
 typedef void (*TFID_callback) (int docID, TFID_t TFID);
@@ -62,20 +61,21 @@ void process_file(const std::string& path, TFID_callback callback)
 	docid = 0;
 
 	Tokenizer tokenizer;
-	DocExtractor docextractor([] (DocumentData& doc) {
-		TFID_t TFID = produceTFID(doc);
-		callbackforTFID(++docid, TFID);
-	});
+	DocumentExtractor docextractor;
 
 	std::ifstream is(path);
-	if (!is) throw "error reading file at" + path;
+	if (!is) throw "error reading file '" + path + "'";
 
-	for(;;)
-	{
+	for(;;) {
 		std::string token = tokenizer.extract(is);
 		if (token.empty()) break;
 		docextractor.parseToken(token);
 	}
+
+	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {
+		TFID_t TFID = produceTFID(document);
+		callbackforTFID(++docid, TFID);
+	});
 }
 
 InvertedFile_t IF;

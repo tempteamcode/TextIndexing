@@ -3,19 +3,18 @@
 /**
 * Word entry keeping the frequency of a word in a specific document
 **/
-struct InvertedFileWordEntry {
-
-	int docID;
+struct InvertedFileWordEntry_t {
+	unsigned int docID;
 	unsigned int frequency;
 
-	InvertedFileWordEntry(int docID = -1, unsigned int frequency = 0)
+	InvertedFileWordEntry_t(unsigned int docID, unsigned int frequency)
 		: docID(docID), frequency(frequency)
 	{}
 
 };
 
+typedef std::map<std::string, std::vector<InvertedFileWordEntry_t>> InvertedFile_t;
 
-typedef std::map< std::string, std::vector< InvertedFileWordEntry > > InvertedFile_t;
 
 void invertedFileAdd( InvertedFile_t& IF, int docID, const TFID_t& TFID )
 {
@@ -24,3 +23,5 @@ void invertedFileAdd( InvertedFile_t& IF, int docID, const TFID_t& TFID )
 		IF[wordfreq.first].emplace_back( docID, wordfreq.second );
 	}
 }
+
+
