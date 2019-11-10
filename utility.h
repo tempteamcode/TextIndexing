@@ -22,6 +22,45 @@ struct Date_t
 	}
 };
 
+class string_view
+{
+public:
+	std::string::const_iterator begin;
+	std::string::const_iterator end;
+	
+	string_view() = default;
+
+	string_view(const std::string& str)
+		: begin(str.cbegin()), end(str.cend())
+	{}
+	
+	string_view(std::string::const_iterator begin, std::string::const_iterator end)
+		: begin(begin), end(end)
+	{}
+
+	inline std::string str() const
+	{
+		return std::string(begin, end);
+	}
+
+	inline explicit operator std::string() const
+	{
+		return str();
+	}
+};
+
+inline bool operator ==(const string_view& str_view, const char* text)
+{
+	auto it = str_view.begin;
+	for (;;)
+	{
+		bool text_end = (*text == '\0');
+		bool view_end = (it == str_view.end);
+		if (text_end || view_end) return (text_end && view_end);
+		if ((*it++) != (*text++)) return false;
+	}
+}
+
 void toLowerCase(std::string& text)
 {
 	for (unsigned int i = 0, len = text.length(); i < len; i++)
@@ -32,6 +71,21 @@ void toLowerCase(std::string& text)
 			text[i] = c - 'A' + 'a';
 		}
 	}
+}
+
+inline bool tryParseInt(const string_view& chars, unsigned int& value)
+{
+	value = 0;
+
+	for (auto it = chars.begin; it != chars.end; ++it)
+	{
+		char c = (*it);
+		if (c < '0' || c > '9') return false;
+
+		value = value * 10 + (c - '0');
+	}
+
+	return true;
 }
 
 inline bool tryParseInt(const std::string& chars, unsigned int& value)
@@ -71,4 +125,26 @@ inline bool tryParseDate(const std::vector<std::string>& words, Date_t& date)
 	date.weekday = static_cast<Date_t::weekday_t>(it_weekday - names_weekdays.cbegin() + 1);
 
 	return true;
+}
+
+/**
+* joins several strings into one with linear complexity
+* the resulting string is allocated with its final size to avoid reallocation when appending each substring
+**/
+inline std::string stringJoin(const std::vector<std::string>& data, char sep = ' ')
+{
+	size_t totalsize = data.size() + 1;
+	for (const auto& str : data) totalsize += str.size();
+	
+	std::string result;
+	result.reserve(totalsize);
+
+	for (auto it = data.begin(); it != data.end(); ++it)
+	{
+		result += (*it);
+		result += sep;
+	}
+
+	if (!result.empty()) result.resize(result.size() - 1);
+    return result;
 }

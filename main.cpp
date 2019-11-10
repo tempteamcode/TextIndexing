@@ -17,32 +17,30 @@
 #include "InvertedFileWriter.h"
 
 
-void print_file_tokens(const std::string& path)
+void print_file_chunks(const std::string& path)
 {
-	Tokenizer tokenizer;
+	PreprocessorTagsData preproc;
 
 	std::ifstream is(path);
 	if (!is) throw "error reading file '" + path + "'";
 
-	for (;;) {
-		std::string token = tokenizer.extract(is);
-		if (token.empty()) break;
-		std::cout << token << std::endl;
+	while (is) {
+		std::string tagordata = preproc.separateTagsData(is);
+		std::cout << tagordata << std::endl;
 	}
 }
 
 void print_file_documents(const std::string& path)
 {
-	Tokenizer tokenizer;
+	PreprocessorTagsData preproc;
 	DocumentExtractor docextractor;
 
 	std::ifstream is(path);
 	if (!is) throw "error reading file '" + path + "'";
 
-	for (;;) {
-		std::string token = tokenizer.extract(is);
-		if (token.empty()) break;
-		docextractor.parseToken(token);
+	while (is) {
+		std::string tagordata = preproc.separateTagsData(is);
+		docextractor.parseTagOrData(tagordata);
 	}
 
 	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {
@@ -60,16 +58,15 @@ void process_file(const std::string& path, TFID_callback callback)
 	callbackforTFID = callback;
 	docid = 0;
 
-	Tokenizer tokenizer;
+	PreprocessorTagsData preproc;
 	DocumentExtractor docextractor;
 
 	std::ifstream is(path);
 	if (!is) throw "error reading file '" + path + "'";
 
-	for(;;) {
-		std::string token = tokenizer.extract(is);
-		if (token.empty()) break;
-		docextractor.parseToken(token);
+	while (is) {
+		std::string tagordata = preproc.separateTagsData(is);
+		docextractor.parseTagOrData(tagordata);
 	}
 
 	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {

@@ -9,7 +9,7 @@ struct DocumentTree_t
 	DocumentTree_t* parent;
 	std::string name;
 	std::vector<DocumentTree_t> tags;
-	std::vector<std::string> words;
+	std::string data;
 
 	void simplify();
 	bool DocumentTree_t::empty() const;
@@ -23,7 +23,7 @@ struct DocumentTree_t
 class DocumentExtractor
 {
 public:
-	void parseToken(const std::string & token);
+	void parseTagOrData(const std::string& chunk);
 
 	DocumentTree_t& getDocument();
 	void clearDocument();
@@ -31,18 +31,25 @@ public:
 private:
 	DocumentTree_t tree;
 	DocumentTree_t* node = &tree;
+
+	std::vector<std::string> part;
 };
 
-void DocumentExtractor::parseToken(const std::string& token)
+inline void DocumentExtractor::parseTagOrData(const std::string& tagordata)
 {
-	if (token[0] == '<')
+	if (tagordata[0] == '<')
 	{
-		int closing = (token[1] == '/') ? 1 : 0;
-		std::string tagname = token.substr(1 + closing, token.length() - 2 - closing);
+		const std::string& tag = tagordata;
+
+		node->data += stringJoin(part);
+		part.clear();
+
+		int closing = (tag[1] == '/') ? 1 : 0;
+		std::string tagname = tag.substr(1 + closing, tag.length() - 2 - closing);
 		auto pos = tagname.find(' ');
 		if (pos != std::string::npos) tagname.resize(pos);
 
-		if (token.length() > 1 && token[1] == '/')
+		if (tag.length() > 1 && tag[1] == '/')
 		{
 			if (tagname != node->name)
 			{
@@ -66,7 +73,9 @@ void DocumentExtractor::parseToken(const std::string& token)
 	}
 	else
 	{
-		node->words.push_back(token);
+		const std::string& data = tagordata;
+
+		part.push_back(data);
 	}
 }
 
@@ -87,17 +96,26 @@ void DocumentTree_t::simplify()
 	tags.erase(std::remove_if(tags.begin(), tags.end(), [] (const DocumentTree_t& tag) {
 		return tag.empty();
 	}), tags.end());
+
+	for (char c : data)
+	{
+		if (c != ' ' && c != '\n')
+		{
+			return;
+		}
+	}
+	data.clear();
 }
 
 bool DocumentTree_t::empty() const
 {
-	return (tags.empty() && words.empty());
+	return (tags.empty() && data.empty());
 }
 
 void DocumentTree_t::clear()
 {
 	tags.clear();
-	words.clear();
+	data.clear();
 }
 
 void DocumentExtractor::clearDocument()

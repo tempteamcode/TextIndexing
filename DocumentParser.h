@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "Tokenizer.h"
 #include "DocumentExtractor.h"
 
 #include "utility.h"
@@ -35,23 +36,48 @@ inline void print_tags(const DocumentTree_t& tag, std::string indent) {
 		print_tags(tag, indent);
 	}
 
-	if (!tag.words.empty())
+	if (!tag.data.empty())
 	{
-		std::cout << indent;
-		unsigned int count = 0;
-		for (const std::string& word : tag.words)
-		{
-			std::cout << word << ' ';
-			if (++count > 9)
-			{
-				std::cout << "[...]" << ' ';
-				break;
-			}
-		}
-		std::cout << std::endl;
+		std::cout << indent << (tag.data.size() > 30 ? tag.data.substr(0, 27) + "..." : tag.data) << std::endl;
 	}
 
 	std::cout << indent << '<' << '/' << tag.name << '>' << std::endl;
+}
+
+inline std::vector<string_view> extractTokens(const std::string& data)
+{
+	std::vector<string_view> result;
+
+	Tokenizer tokenizer;
+	string_view range(data);
+
+	string_view part;
+
+	for (;;)
+	{
+		try {
+			part = tokenizer.extract(data, range);
+			result.push_back(part);
+			range.begin = part.end;
+		}
+		catch (int no_token)
+		{
+			(void) no_token;
+			break;
+		}
+	}
+
+	return result;
+}
+
+inline void extractTokens(const std::string& data, std::vector<std::string>& dest)
+{
+	auto words = extractTokens(data);
+	dest.reserve(dest.size() + words.size());
+	for (auto& word : words)
+	{
+		dest.emplace_back(word);
+	}
 }
 
 inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
@@ -77,48 +103,53 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		{
 			if (!document.DOCNO.empty()) std::cerr << "/!\\ several DOCNO tags in one document" << std::endl;
 
-			if (tag.words.size() == 2)
+			auto words = extractTokens(tag.data);
+			if (words.size() == 2)
 			{
-				document.DOCNO = tag.words[0] + "-" + tag.words[1];
-				tag.words.clear();
+				document.DOCNO = std::string(words[0]) + "-" + std::string(words[1]);
+				tag.data.clear();
 			}
 		}
 		else if (tag.name == "DOCID")
 		{
-			if (document.DOCID != 0) std::cerr << "/!\\ several DOCID tags in one document" << std::endl;
-
-			if (tag.words.size() == 1)
+			auto words = extractTokens(tag.data);
+			if (words.size() == 1)
 			{
-				if (tryParseInt(tag.words[0], document.DOCID))
+				unsigned int value;
+				if (tryParseInt(words[0], value))
 				{
-					tag.words.clear();
+					if (document.DOCID != 0) std::cerr << "/!\\ several DOCIDs for one document" << std::endl;
+					
+					document.DOCID = value;
+
+					tag.data.clear();
 				}
 			}
 		}
 		else if (tag.name == "DATE")
 		{
-			Date_t date;
-
-			if (tag.tags.size() >= 1)
-			{
-				auto& subtag = tag.tags[0];
-
-				if (subtag.name == "P" && tryParseDate(subtag.words, date))
-				{
-					if (!document.DATE.empty()) std::cerr << "/!\\ several dates in one document" << std::endl;
-
-					document.DATE = date;
-					subtag.words.clear();
-
-					if (subtag.empty()) tag.tags.erase(tag.tags.begin());
-				}
-			}
-
 			for (auto& subtag : tag.tags)
 			{
-				if (subtag.name == "P" && subtag.words.size() == 2 && subtag.words[0] == "Correction" && subtag.words[1] == "Appended")
+				if (subtag.name != "P") continue;
+
+				auto words_view = extractTokens(subtag.data);
+
+				if (words_view.size() == 2 && words_view[0] == "Correction" && words_view[1] == "Appended")
 				{
-					subtag.words.clear();
+					subtag.data.clear();
+					continue;
+				}
+				
+				std::vector<std::string> words;
+				for (auto& word_view : words_view) words.push_back(std::string(word_view));
+
+				Date_t date;
+				if (tryParseDate(words, date))
+				{
+					if (!document.DATE.empty()) std::cerr << "/!\\ several DATEs for one document" << std::endl;
+
+					document.DATE = date;
+					subtag.data.clear();
 				}
 			}
 		}
@@ -127,16 +158,18 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 			if (tag.tags.size() >= 1 && tag.tags[0].name == "P")
 			{
 				auto& subtag = tag.tags[0];
+				
+				auto words = extractTokens(subtag.data);
 
-				if (subtag.name == "P" && subtag.words.size() == 2)
+				if (subtag.name == "P" && words.size() == 2)
 				{
 					unsigned int value;
-					if (subtag.words[1] == "words" && tryParseInt(subtag.words[0], value))
+					if (words[1] == "words" && tryParseInt(words[0], value))
 					{
 						if (document.LENGTH != 0) std::cerr << "/!\\ several lengthes in one document" << std::endl;
 						
 						document.LENGTH = value;
-						subtag.words.clear();
+						subtag.data.clear();
 					}
 				}
 			}
@@ -147,15 +180,15 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 		else if (tag.name == "TEXT")
 		{
-			std::move(tag.words.begin(), tag.words.end(), std::back_inserter(document.TEXT));
-			tag.words.erase(tag.words.begin(), tag.words.end());
+			extractTokens(tag.data, document.TEXT);
+			tag.data.clear();
 
 			for (auto& subtag : tag.tags)
 			{
 				if (subtag.name == "P")
 				{
-					std::move(subtag.words.begin(), subtag.words.end(), std::back_inserter(document.TEXT));
-					subtag.words.erase(subtag.words.begin(), subtag.words.end());
+					extractTokens(subtag.data, document.TEXT);
+					subtag.data.clear();
 				}
 				else if (subtag.name == "TABLE")
 				{
@@ -165,8 +198,8 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 		else if (tag.name == "P")
 		{
-			std::move(tag.words.begin(), tag.words.end(), std::back_inserter(document.TEXT));
-			tag.words.erase(tag.words.begin(), tag.words.end());
+			extractTokens(tag.data, document.TEXT);
+			tag.data.clear();
 		}
 		else if (tag.name == "GRAPHIC")
 		{
