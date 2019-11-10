@@ -11,6 +11,8 @@ struct DocumentTree_t
 	std::vector<DocumentTree_t> tags;
 	std::vector<std::string> words;
 
+	void simplify();
+	bool DocumentTree_t::empty() const;
 	void clear();
 
     DocumentTree_t() = default;
@@ -78,10 +80,22 @@ DocumentTree_t& DocumentExtractor::getDocument()
 	return tree;
 }
 
+void DocumentTree_t::simplify()
+{
+	for (auto& tag : tags) tag.simplify();
+
+	tags.erase(std::remove_if(tags.begin(), tags.end(), [] (const DocumentTree_t& tag) {
+		return tag.empty();
+	}), tags.end());
+}
+
+bool DocumentTree_t::empty() const
+{
+	return (tags.empty() && words.empty());
+}
+
 void DocumentTree_t::clear()
 {
-	parent = nullptr;
-	name.clear();
 	tags.clear();
 	words.clear();
 }

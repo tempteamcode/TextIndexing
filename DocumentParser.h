@@ -1,14 +1,18 @@
 #pragma once
 
+#include <iostream>
+
 #include "DocumentExtractor.h"
+
+#include "utility.h"
 
 struct DocumentData_t
 {
 	std::string DOCNO;
-	unsigned int DOCID;
-	std::string DATE;
+	unsigned int DOCID = 0;
+	Date_t DATE;
 	// SECTION
-	unsigned int LENGTH;
+	unsigned int LENGTH = 0;
 	std::vector<std::string> HEADLINE;
 	// BYLINE
 	// DATELINE
@@ -20,19 +24,35 @@ struct DocumentData_t
 	// CORRECTION
 };
 
-unsigned int parseInt_nochecks(const std::string& chars)
-{
-	unsigned int value = 0;
+typedef std::map<std::string, unsigned int> TFID_t;
 
-	for (char c : chars)
+inline void print_tags(const DocumentTree_t& tag, std::string indent) {
+	indent += "    ";
+	std::cout << indent << '<' << tag.name << '>' << std::endl;
+
+	for (auto& tag : tag.tags)
 	{
-		value = value * 10 + (c - '0');
+		print_tags(tag, indent);
 	}
 
-	return value;
-}
+	if (!tag.words.empty())
+	{
+		std::cout << indent;
+		unsigned int count = 0;
+		for (const std::string& word : tag.words)
+		{
+			std::cout << word << ' ';
+			if (++count > 9)
+			{
+				std::cout << "[...]" << ' ';
+				break;
+			}
+		}
+		std::cout << std::endl;
+	}
 
-typedef std::map<std::string, unsigned int> TFID_t;
+	std::cout << indent << '<' << '/' << tag.name << '>' << std::endl;
+}
 
 inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 {
@@ -55,7 +75,7 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 	{
 		if (tag.name == "DOCNO")
 		{
-			if (!document.DOCNO.empty()) std::cerr << "several DOCNO tags in one document" << std::endl;
+			if (!document.DOCNO.empty()) std::cerr << "/!\\ several DOCNO tags in one document" << std::endl;
 
 			if (tag.words.size() == 2)
 			{
@@ -65,69 +85,81 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 		else if (tag.name == "DOCID")
 		{
+			if (document.DOCID != 0) std::cerr << "/!\\ several DOCID tags in one document" << std::endl;
+
 			if (tag.words.size() == 1)
 			{
-				document.DOCID = parseInt_nochecks(tag.words[0]);
-				tag.words.clear();
+				if (tryParseInt(tag.words[0], document.DOCID))
+				{
+					tag.words.clear();
+				}
 			}
 		}
 		else if (tag.name == "DATE")
 		{
-			if (!document.TEXT.empty()) std::cerr << "several DATE tags in one document" << std::endl;
-			
-			if (tag.tags.size() >= 1 && tag.tags[0].name == "P")
+			Date_t date;
+
+			if (tag.tags.size() >= 1)
 			{
-				auto& words = tag.tags[0].words;
-				
-				for (const std::string& word : tag.words)
+				auto& subtag = tag.tags[0];
+
+				if (subtag.name == "P" && tryParseDate(subtag.words, date))
 				{
-					document.DATE += word + ' ';
+					if (!document.DATE.empty()) std::cerr << "/!\\ several dates in one document" << std::endl;
+
+					document.DATE = date;
+					subtag.words.clear();
+
+					if (subtag.empty()) tag.tags.erase(tag.tags.begin());
 				}
-				if (!document.DATE.empty())
-					document.DATE.resize(document.DATE.length() - 1);
-				
-				tag.tags.erase(tag.tags.begin());
 			}
 
-			if (!tag.tags.empty()) continue;
+			for (auto& subtag : tag.tags)
+			{
+				if (subtag.name == "P" && subtag.words.size() == 2 && subtag.words[0] == "Correction" && subtag.words[1] == "Appended")
+				{
+					subtag.words.clear();
+				}
+			}
 		}
 		else if (tag.name == "LENGTH")
 		{
-			if (tag.tags.size() == 1 && tag.tags[0].name == "P")
+			if (tag.tags.size() >= 1 && tag.tags[0].name == "P")
 			{
-				auto& words = tag.tags[0].words;
-				if (words.size() == 2 && words[1] == "words")
+				auto& subtag = tag.tags[0];
+
+				if (subtag.name == "P" && subtag.words.size() == 2)
 				{
-					document.LENGTH = parseInt_nochecks(words[0]);
-					tag.tags.clear();
+					unsigned int value;
+					if (subtag.words[1] == "words" && tryParseInt(subtag.words[0], value))
+					{
+						if (document.LENGTH != 0) std::cerr << "/!\\ several lengthes in one document" << std::endl;
+						
+						document.LENGTH = value;
+						subtag.words.clear();
+					}
 				}
 			}
 		}
 		else if (tag.name == "HEADLINE")
 		{
-			continue;
+			continue; // TODO: implement
 		}
 		else if (tag.name == "TEXT")
 		{
-			// if (!document.TEXT.empty()) std::cerr << "several TEXT tags in one document" << std::endl; // this happens
-
 			std::move(tag.words.begin(), tag.words.end(), std::back_inserter(document.TEXT));
 			tag.words.erase(tag.words.begin(), tag.words.end());
 
-			for (auto it = tag.tags.begin(); it != tag.tags.end(); it = tag.tags.erase(it))
+			for (auto& subtag : tag.tags)
 			{
-				auto& subtag = (*it);
-				
-				if (subtag.name == "TABLE") continue;
-
 				if (subtag.name == "P")
 				{
-					std::move(tag.words.begin(), tag.words.end(), std::back_inserter(document.TEXT));
-					tag.words.erase(tag.words.begin(), tag.words.end());
+					std::move(subtag.words.begin(), subtag.words.end(), std::back_inserter(document.TEXT));
+					subtag.words.erase(subtag.words.begin(), subtag.words.end());
 				}
-				else
+				else if (subtag.name == "TABLE")
 				{
-					std::cerr << "unknown TEXT subtag " << subtag.name << std::endl;
+					subtag.clear(); // TABLEs are ignored
 				}
 			}
 		}
@@ -138,25 +170,27 @@ inline DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 		else if (tag.name == "GRAPHIC")
 		{
-			continue;
+			continue; //TODO: implement
 		}
 		else if (tag.name == "SUBJECT")
 		{
-			continue;
+			continue; //TODO: implement
 		}
 		else if (tag.name == "SECTION" || tag.name == "BYLINE" || tag.name == "DATELINE" || tag.name == "TYPE" || tag.name == "CORRECTION-DATE" || tag.name == "CORRECTION")
 		{
-			tag.tags.clear();
-			tag.words.clear();
+			tag.clear(); // these tags are (currently) ignored
 		}
 		else
 		{
-			std::cerr << "unknown root tag '" << tag.name << "'" << std::endl;
+			std::cerr << "/!\\ unknown root tag '" << tag.name << "'" << std::endl;
 		}
 
-		if (!tag.tags.empty())
+		tag.simplify();
+		if (!tag.empty())
 		{
-			std::cerr << "unknown " << tag.name << " subtag " << tag.tags[0].name << std::endl;
+			std::cerr << "/!\\ unused '" << tag.name << "' data:" << std::endl;
+
+			print_tags(tag, "");
 		}
 	}
 
