@@ -19,7 +19,7 @@ struct DocumentData_t
 	// BYLINE
 	// DATELINE
 	TFID_t TEXT;
-	std::vector<TFID_t> GRAPHICs;
+	std::list<TFID_t> GRAPHICs;
 	// TYPE
 	TFID_t SUBJECT;
 	// CORRECTION-DATE
@@ -33,6 +33,33 @@ std::vector<string_view> extractTokens(const std::string& data);
 
 void extractTokens(const std::string& data, TFID_t& dest);
 
-DocumentData_t extractDocumentData(DocumentTree_t& documents);
+template<class callback_t>
+void extractTokens(const std::string& data, callback_t callback)
+{
+	Tokenizer tokenizer;
+	string_view range(data);
 
-void extractDocuments(DocumentTree_t& documents, void(*callback)(DocumentData_t&));
+	for (;;)
+	{
+		string_view part;
+		if (!tokenizer.extract(data, range, part)) break;
+
+		callback(part);
+		range.begin = part.end;
+	}
+}
+
+bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document);
+
+template<class callback_t>
+void extractDocuments(DocumentTree_t& documents, callback_t callback)
+{
+	DocumentData_t document;
+
+	for (;;)
+	{
+		if (!extractDocumentData(documents, document)) break;
+
+		callback(document);
+	}
+}

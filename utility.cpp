@@ -70,17 +70,17 @@ bool tryParseDate(const std::vector<std::string>& words, Date_t& date)
 	return true;
 }
 
-std::string stringJoin(const std::vector<std::string>& data, char sep)
+std::string stringJoin(const std::list<std::string>& data, char sep)
 {
 	size_t totalsize = data.size() + 1;
-	for (const auto& str : data) totalsize += str.size();
+	for (const std::string& str : data) totalsize += str.size();
 	
 	std::string result;
 	result.reserve(totalsize);
 
-	for (auto it = data.begin(); it != data.end(); ++it)
+	for (const std::string& str : data)
 	{
-		result += (*it);
+		result += str;
 		result += sep;
 	}
 

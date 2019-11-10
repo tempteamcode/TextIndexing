@@ -48,16 +48,9 @@ void print_file_documents(const std::string& path)
 	});
 }
 
-typedef void (*TFID_callback) (int docID, TFID_t TFID);
-int docid;
-
-TFID_callback callbackforTFID;
-
-void process_file(const std::string& path, TFID_callback callback)
+template<class callback_t>
+void process_file(const std::string& path, callback_t callback)
 {
-	callbackforTFID = callback;
-	docid = 0;
-
 	PreprocessorTagsData preproc;
 	DocumentExtractor docextractor;
 
@@ -69,9 +62,7 @@ void process_file(const std::string& path, TFID_callback callback)
 		docextractor.parseTagOrData(tagordata);
 	}
 
-	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {
-		callbackforTFID(++docid, document.TEXT);
-	});
+	extractDocuments(docextractor.getDocument(), callback);
 }
 
 InvertedFile_t IF;
@@ -92,8 +83,8 @@ int main(int argc, char * argv[])
 		std::cout << p.path() << '\n';
 		// print_file_tokens(p.path().string());
 		// print_file_documents(p.path().string());
-		process_file(p.path().string(), [] (int docID, TFID_t TFID) {
-			invertedFileAdd(IF, docID, TFID);
+		process_file(p.path().string(), [] (DocumentData_t& document) {
+			invertedFileAdd(IF, document.DOCID, document.TEXT);
 			// std::cout << TFID.size() << std::endl;
 		});
 		// break;

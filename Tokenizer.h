@@ -66,7 +66,7 @@ public:
 	 */
 	Token_t extractToken(std::istream & is);
 
-	string_view Tokenizer::extract(const std::string& data, const string_view& range);
+	bool Tokenizer::extract(const std::string& data, const string_view& range, string_view& result);
 
 	bool isNextTokenASeparator(std::istream & is, std::string & sep);
 

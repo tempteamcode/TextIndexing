@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <vector>
 #include <string>
 
@@ -98,4 +99,4 @@ bool tryParseDate(const std::vector<std::string>& words, Date_t& date);
 * joins several strings into one with linear complexity
 * the resulting string is allocated with its final size to avoid reallocation when appending each substring
 **/
-std::string stringJoin(const std::vector<std::string>& data, char sep = ' ');
+std::string stringJoin(const std::list<std::string>& data, char sep = ' ');

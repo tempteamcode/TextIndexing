@@ -26,41 +26,20 @@ void print_tags(const DocumentTree_t& tag, std::string indent)
 std::vector<string_view> extractTokens(const std::string& data)
 {
 	std::vector<string_view> result;
-
-	Tokenizer tokenizer;
-	string_view range(data);
-
-	string_view part;
-
-	for (;;)
-	{
-		try {
-			part = tokenizer.extract(data, range);
-			result.push_back(part);
-			range.begin = part.end;
-		}
-		catch (custom_exception& e)
-		{
-			if (e != custom_exception::empty) throw;
-
-			break;
-		}
-	}
-
+	extractTokens(data, [&] (const string_view& word_view) {
+		result.emplace_back(word_view);
+	});
 	return result;
 }
 
 void extractTokens(const std::string& data, TFID_t& dest)
 {
-	auto words = extractTokens(data);
-	dest.reserve(dest.size() + words.size());
-	for (auto& word : words)
-	{
-		dest[std::string(word)]++;
-	}
+	extractTokens(data, [&] (const string_view& word_view) {
+		dest[std::string(word_view)]++;
+	});
 }
 
-DocumentData_t extractDocumentData(DocumentTree_t& documents)
+bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document)
 {
 	DocumentTree_t* root = nullptr;
 
@@ -73,9 +52,9 @@ DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 	}
 
-	if (root == nullptr) throw custom_exception::empty;
+	if (root == nullptr) return false;
 
-	DocumentData_t document;
+	document = DocumentData_t();
 
 	for (DocumentTree_t& tag : root->tags)
 	{
@@ -135,9 +114,9 @@ DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 		else if (tag.name == "LENGTH")
 		{
-			if (tag.tags.size() >= 1 && tag.tags[0].name == "P")
+			if (tag.tags.size() >= 1 && (*tag.tags.begin()).name == "P")
 			{
-				auto& subtag = tag.tags[0];
+				auto& subtag = (*tag.tags.begin());
 				
 				auto words = extractTokens(subtag.data);
 
@@ -216,22 +195,5 @@ DocumentData_t extractDocumentData(DocumentTree_t& documents)
 		}
 	}
 
-	return document;
-}
-
-void extractDocuments(DocumentTree_t& documents, void(*callback)(DocumentData_t&))
-{
-	for (;;)
-	{
-		try {
-			DocumentData_t document = extractDocumentData(documents);
-			callback(document);
-		}
-		catch (custom_exception& e)
-		{
-			if (e != custom_exception::empty) throw;
-
-			break;
-		}
-	}
+	return true;
 }

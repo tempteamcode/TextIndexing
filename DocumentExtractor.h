@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vector>
+#include <list>
 #include <string>
 
 struct DocumentTree_t
 {
 	DocumentTree_t* parent;
 	std::string name;
-	std::vector<DocumentTree_t> tags;
+	std::list<DocumentTree_t> tags;
 	std::string data;
 
 	void simplify();
@@ -31,5 +31,5 @@ private:
 	DocumentTree_t tree;
 	DocumentTree_t* node = &tree;
 
-	std::vector<std::string> part;
+	std::list<std::string> part;
 };

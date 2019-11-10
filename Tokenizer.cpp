@@ -143,20 +143,18 @@ std::string PreprocessorTagsData::separateTagsData(std::istream& is)
 	return result;
 }
 
-string_view Tokenizer::extract(const std::string& data, const string_view& range)
+bool Tokenizer::extract(const std::string& data, const string_view& range, string_view& result)
 {
-	string_view result;
-
 	std::string::const_iterator pos = range.begin;
 	for (;;)
 	{
-		if (pos == range.end) throw custom_exception::empty; // no token
+		if (pos == range.end) return false; // no token
 		if (isValidTextChar[*pos]) break;
 		if (isValidSingleChar[*pos])
 		{
 			result.begin = pos;
 			result.end = pos + 1;
-			return result;
+			return true;
 		}
 
 		++pos;
@@ -171,5 +169,5 @@ string_view Tokenizer::extract(const std::string& data, const string_view& range
 	}
 	result.end = pos;
 
-	return result;
+	return true;
 }
