@@ -6,7 +6,8 @@
 
 enum class custom_exception
 {
-	empty,
+	no_tagordata,
+	no_token,
 };
 
 extern const std::vector<std::string> names_months;

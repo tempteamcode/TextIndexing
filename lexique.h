@@ -3,7 +3,7 @@
 
 namespace Document {
 
-    enum TagLex : unsigned int  {
+    enum TagLex : unsigned int {
         EMPTY_TAG,
         P_TAG,
         DOCNO_TAG,
@@ -19,10 +19,10 @@ namespace Document {
         TYPE_TAG,
         SUBJECT_TAG,
         CORRECTION_DATE_TAG,
-        CORRECTION_TAG
+        CORRECTION_TAG,
     };
 
-    std::map< TagLex, std::string > tagLexStrMap = 
+    std::map<TagLex, std::string> tagLexStrMap = 
     {
         { EMPTY_TAG, "" },
         { P_TAG, "P" },
@@ -39,33 +39,26 @@ namespace Document {
         { TYPE_TAG, "TYPE" },
         { SUBJECT_TAG, "SUBJECT" },
         { CORRECTION_DATE_TAG, "CORRECTION-DATE" },
-        { CORRECTION_TAG, "CORRECTION" }
+        { CORRECTION_TAG, "CORRECTION" },
     };
 
-    std::map< std::string, TagLex > strTagLexMap;
+    std::map<std::string, TagLex> strTagLexMap;
 
-    inline std::string toStr( const TagLex lex ) { 
-        try {
-            auto str = tagLexStrMap.at( lex );
-            return str;
-        } catch(...) {
-            return "";
-        }
+    inline std::string toStr(const TagLex lex) { 
+    	auto pos = tagLexStrMap.find(lex);
+		if (pos != tagLexStrMap.end()) return (*pos).second;
+		else return std::string();
     }
 
-    inline TagLex toTagLex( const std::string & str ) {
-        try {
-            auto lex = strTagLexMap.at( str );
-            return lex;
-        } catch(...) {
-            return EMPTY_TAG;
-        }
+    inline TagLex toTagLex(const std::string & str) {
+		auto pos = strTagLexMap.find(str);
+		if (pos != strTagLexMap.end()) return (*pos).second;
+		else return EMPTY_TAG;
     }
 
     void initializeLexique() {
-        for( auto & item : tagLexStrMap ) {
-            strTagLexMap[ item.second ] = item.first;
+        for (auto& item : tagLexStrMap) {
+            strTagLexMap[item.second] = item.first;
         }
     }
-
 };

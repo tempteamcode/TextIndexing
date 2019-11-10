@@ -65,11 +65,9 @@ void process_file(const std::string& path, callback_t callback)
 	extractDocuments(docextractor.getDocument(), callback);
 }
 
-InvertedFile_t IF;
-
 int main(int argc, char * argv[])
 {
-	IF.clear();
+	InvertedFile_t IF;
 
 	if (!fs::exists("latimes/"))
 	{
@@ -83,7 +81,7 @@ int main(int argc, char * argv[])
 		std::cout << p.path() << '\n';
 		// print_file_tokens(p.path().string());
 		// print_file_documents(p.path().string());
-		process_file(p.path().string(), [] (DocumentData_t& document) {
+		process_file(p.path().string(), [&] (DocumentData_t& document) {
 			invertedFileAdd(IF, document.DOCID, document.TEXT);
 			// std::cout << TFID.size() << std::endl;
 		});
