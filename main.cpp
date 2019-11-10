@@ -1,14 +1,14 @@
 #include <fstream>
 #include <iostream>
 
-#if __cplusplus > 201703L
-// built with C++20 support
-	#include <filesystem>
-	namespace fs = std::filesystem;
+#if __cplusplus >= 201703L
+// built with C++17, C++20 support
+#include <filesystem>
+namespace fs = std::filesystem;
 #else
-// built with C++11, C++14, C++17 support
-	#include <experimental/filesystem>
-	namespace fs = std::experimental::filesystem;
+// built with C++11, C++14 support
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 #endif
 
 #include "Tokenizer.h"
@@ -70,8 +70,7 @@ void process_file(const std::string& path, TFID_callback callback)
 	}
 
 	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {
-		TFID_t TFID = produceTFID(document);
-		callbackforTFID(++docid, TFID);
+		callbackforTFID(++docid, document.TEXT);
 	});
 }
 
