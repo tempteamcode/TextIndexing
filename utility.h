@@ -6,6 +6,8 @@
 
 enum class custom_exception
 {
+	fs_access,
+	parsing_error,
 	no_tagordata,
 	no_token,
 };

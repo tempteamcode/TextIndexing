@@ -11,10 +11,11 @@ namespace fs = std::filesystem;
 namespace fs = std::experimental::filesystem;
 #endif
 
+#include "Files.h"
 #include "Tokenizer.h"
 #include "DocumentExtractor.h"
 #include "DocumentParser.h"
-#include "InvertedFileWriter.h"
+#include "InvertedFile.h"
 
 
 void print_file_chunks(const std::string& path)
@@ -22,7 +23,7 @@ void print_file_chunks(const std::string& path)
 	PreprocessorTagsData preproc;
 
 	std::ifstream is(path);
-	if (!is) throw "error reading file '" + path + "'";
+	if (!is) throw custom_exception::fs_access;
 
 	while (is) {
 		std::string tagordata = preproc.separateTagsData(is);
@@ -36,7 +37,7 @@ void print_file_documents(const std::string& path)
 	DocumentExtractor docextractor;
 
 	std::ifstream is(path);
-	if (!is) throw "error reading file '" + path + "'";
+	if (!is) throw custom_exception::fs_access;
 
 	while (is) {
 		std::string tagordata = preproc.separateTagsData(is);
@@ -55,7 +56,7 @@ void process_file(const std::string& path, callback_t callback)
 	DocumentExtractor docextractor;
 
 	std::ifstream is(path);
-	if (!is) throw "error reading file '" + path + "'";
+	if (!is) throw custom_exception::fs_access;
 
 	while (is) {
 		std::string tagordata = preproc.separateTagsData(is);
@@ -69,6 +70,14 @@ int main(int argc, char * argv[])
 {
 	InvertedFile_t IF;
 
+	if (fs::exists("InvertedFile.bin"))
+	{
+		IFImport(IF, "InvertedFile.bin");
+		std::cout << "InvertedFile.bin" << std::endl;
+		std::cout << IF.size() << " entries" << std::endl;
+		return 0;
+	}
+
 	if (!fs::exists("latimes/"))
 	{
 		// fs::create_directories("latimes/");
@@ -78,15 +87,31 @@ int main(int argc, char * argv[])
 
 	for (auto& p : fs::directory_iterator("latimes/"))
 	{
-		std::cout << p.path() << '\n';
-		// print_file_tokens(p.path().string());
-		// print_file_documents(p.path().string());
-		process_file(p.path().string(), [&] (DocumentData_t& document) {
-			invertedFileAdd(IF, document.DOCID, document.TEXT);
-			// std::cout << TFID.size() << std::endl;
-		});
-		// break;
+		const std::string path = p.path().string();
+
+		std::cout << path << std::endl;
+		// print_file_tokens(path);
+		// print_file_documents(path);
+		try {
+			process_file(path, [&] (DocumentData_t& document) {
+				invertedFileAdd(IF, document.DOCID, document.TEXT);
+				// std::cout << TFID.size() << std::endl;
+			});
+			// break;
+		}
+		catch (custom_exception& e)
+		{
+			switch (e)
+			{
+			case custom_exception::fs_access:
+				std::cerr << "ERROR: denied access to '" << path << "'" << std::endl; break;
+			case custom_exception::parsing_error:
+				std::cerr << "ERROR: incorrect tag hierarchy in '" << path << "'" << std::endl; break;
+			}
+		}
 	}
+
+	IFExport(IF, "InvertedFile.bin");
 	
 	return 0;
 }

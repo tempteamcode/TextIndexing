@@ -23,11 +23,11 @@ void DocumentExtractor::parseTagOrData(const std::string& tagordata)
 		{
 			if (tagname != node->name)
 			{
-				throw "closing tag not matching opening tag";
+				throw custom_exception::parsing_error; // "closing tag not matching opening tag"
 			}
 			if (node->parent == nullptr)
 			{
-				throw "closing document root";
+				throw custom_exception::parsing_error; // "closing document root"
 			}
 
 			node = node->parent;
@@ -53,7 +53,7 @@ DocumentTree_t& DocumentExtractor::getDocument()
 {
 	if (node != &tree)
 	{
-		throw "closing tag missing";
+		throw custom_exception::parsing_error; // "closing tag missing"
 	}
 
 	return tree;
