@@ -2,6 +2,8 @@
 
 #include <map>
 
+#include "files.h"
+
 /**
 * Word entry keeping the frequency of a word in a specific document
 **/
@@ -28,11 +30,11 @@ inline void invertedFileAdd (InvertedFile_t& IF, int docID, const TFID_t& TFID)
 	}
 }
 
-inline void IFExport(const InvertedFile_t& IF, const std::string& path)
+inline bool IFExport(const InvertedFile_t& IF, const std::string& path)
 {
 	std::ofstream os(path, std::ios::out | std::ios::binary | std::ios::trunc);
-	if (!os) throw custom_exception::fs_access;
-
+	if (!os) return false;
+	
 	unsigned int count = IF.size();
 	binWrite<unsigned int>(os, count);
 
@@ -56,12 +58,14 @@ inline void IFExport(const InvertedFile_t& IF, const std::string& path)
 
 	os.seekp(fptr_begin);
 	binWrite_map<std::string, unsigned int>(os, addresses);
+
+	return true;
 }
 
-inline void IFImport(InvertedFile_t& IF, const std::string& path)
+inline bool IFImport(InvertedFile_t& IF, const std::string& path)
 {
 	std::ifstream is(path, std::ios::in | std::ios::binary);
-	if (!is) throw custom_exception::fs_access;
+	if (!is) return false;
 	
 	unsigned int count;
 	binRead<unsigned int>(is, count);
@@ -80,4 +84,6 @@ inline void IFImport(InvertedFile_t& IF, const std::string& path)
 		auto& vec = IF[it.first];
 		binRead_vec<unsigned int, unsigned int>(is, vec);
 	}
+
+	return true;
 }

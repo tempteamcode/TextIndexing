@@ -32,13 +32,13 @@ inline bool starts_with(const std::string& fullstr, const std::string& substr)
 
 bool Tokenizer::isNextTokenASeparator(std::istream& is, std::string& separator) {
 	// gets the length of the longest separator
-	int charnb = 0;
+	unsigned int charnb = 0;
 	for (const std::string& sep : separators)
 		if (sep.length() > charnb) charnb = sep.length();
 
 	// gets the next chars of the stream
 	std::string streamchars;
-	for (int i = 0; i < charnb; i++)
+	for (unsigned int i = 0; i < charnb; i++)
 	{
 		char c;
 		if (!is.get(c)) break;

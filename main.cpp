@@ -1,16 +1,6 @@
 #include <fstream>
 #include <iostream>
 
-#if __cplusplus >= 201703L
-// built with C++17, C++20 support
-#include <filesystem>
-namespace fs = std::filesystem;
-#else
-// built with C++11, C++14 support
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#endif
-
 #include "Files.h"
 #include "Tokenizer.h"
 #include "DocumentExtractor.h"
@@ -66,52 +56,81 @@ void process_file(const std::string& path, callback_t callback)
 	extractDocuments(docextractor.getDocument(), callback);
 }
 
-int main(int argc, char * argv[])
+
+bool makeInvertedFile(InvertedFile_t& IF)
 {
-	InvertedFile_t IF;
-
-	if (fs::exists("InvertedFile.bin"))
+	std::ifstream inputs("inputs.txt");
+	if (!inputs)
 	{
-		IFImport(IF, "InvertedFile.bin");
-		std::cout << "InvertedFile.bin" << std::endl;
-		std::cout << IF.size() << " entries" << std::endl;
-		return 0;
+		std::cerr << "FATAL ERROR: Unable to generate the InvertedFile." << std::endl;
+		std::cerr << "Reason: could not find 'inputs.txt' containing the list of input files." << std::endl;
+		return false;
 	}
 
-	if (!fs::exists("latimes/"))
-	{
-		// fs::create_directories("latimes/");
-		std::cerr << "directory 'latimes' not found" << std::endl;
-		return 1;
-	}
+	std::cout << "Parsing the input files..." << std::endl;
 
-	for (auto& p : fs::directory_iterator("latimes/"))
+	for (std::string path; std::getline(inputs, path);)
 	{
-		const std::string path = p.path().string();
+		if (path.empty()) continue;
 
 		std::cout << path << std::endl;
-		// print_file_tokens(path);
-		// print_file_documents(path);
+
 		try {
 			process_file(path, [&] (DocumentData_t& document) {
 				invertedFileAdd(IF, document.DOCID, document.TEXT);
-				// std::cout << TFID.size() << std::endl;
 			});
-			// break;
 		}
 		catch (custom_exception& e)
 		{
 			switch (e)
 			{
 			case custom_exception::fs_access:
-				std::cerr << "ERROR: denied access to '" << path << "'" << std::endl; break;
+				std::cerr << "ERROR: file not found / access denied" << std::endl; break;
 			case custom_exception::parsing_error:
-				std::cerr << "ERROR: incorrect tag hierarchy in '" << path << "'" << std::endl; break;
+				std::cerr << "ERROR: invalid tag structure" << std::endl; break;
 			}
 		}
 	}
 
-	IFExport(IF, "InvertedFile.bin");
-	
-	return 0;
+	std::cout << std::endl;
+
+	return true;
+}
+
+int main(int argc, char * argv[])
+{
+	InvertedFile_t IF;
+
+	try
+	{
+		if (IFImport(IF, "InvertedFile.bin"))
+		{
+			std::cout << "Loaded InvertedFile.bin successfully." << std::endl;
+		}
+		else
+		{
+			if (!makeInvertedFile(IF)) return 1;
+
+			if (!IFExport(IF, "InvertedFile.bin"))
+			{
+				std::cout << "FATAL ERROR: Unable to save InvertedFile in 'InvertedFile.bin'." << std::endl;
+				return 1;
+			}
+
+			std::cout << "Generated InvertedFile.bin successfully." << std::endl;
+		}
+		std::cout << std::endl;
+
+		std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+
+		return 0;
+	}
+	catch (custom_exception&)
+	{
+
+	}
+	catch (...)
+	{
+
+	}
 }
