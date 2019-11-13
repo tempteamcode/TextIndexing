@@ -8,7 +8,8 @@
 #include "InvertedFile.h"
 
 
-void print_file_chunks(const std::string& path)
+template <class callback_t>
+void file_tagsdata_process(const std::string& path, callback_t callback)
 {
 	PreprocessorTagsData preproc;
 
@@ -17,43 +18,34 @@ void print_file_chunks(const std::string& path)
 
 	while (is) {
 		std::string tagordata = preproc.separateTagsData(is);
-		std::cout << tagordata << std::endl;
+		callback(tagordata);
 	}
 }
 
-void print_file_documents(const std::string& path)
+void file_tagsdata_print(const std::string& path)
 {
-	PreprocessorTagsData preproc;
-	DocumentExtractor docextractor;
-
-	std::ifstream is(path);
-	if (!is) throw custom_exception::fs_access;
-
-	while (is) {
-		std::string tagordata = preproc.separateTagsData(is);
-		docextractor.parseTagOrData(tagordata);
-	}
-
-	extractDocuments(docextractor.getDocument(), [] (DocumentData_t& document) {
-		std::cout << document.DOCNO << std::endl;
+	file_tagsdata_process(path, [] (std::string& tagordata) {
+		std::cout << tagordata << std::endl;
 	});
 }
 
 template<class callback_t>
-void process_file(const std::string& path, callback_t callback)
+void file_documents_process(const std::string& path, callback_t callback)
 {
-	PreprocessorTagsData preproc;
 	DocumentExtractor docextractor;
 
-	std::ifstream is(path);
-	if (!is) throw custom_exception::fs_access;
-
-	while (is) {
-		std::string tagordata = preproc.separateTagsData(is);
+	file_tagsdata_process(path, [&] (std::string& tagordata) {
 		docextractor.parseTagOrData(tagordata);
-	}
+	});
 
 	extractDocuments(docextractor.getDocument(), callback);
+}
+
+void file_documents_print(const std::string& path)
+{
+	file_documents_process(path, [] (DocumentData_t& document) {
+		std::cout << document.DOCNO << std::endl;
+	});
 }
 
 
@@ -63,10 +55,11 @@ bool makeInvertedFile(InvertedFile_t& IF)
 	if (!inputs)
 	{
 		std::cerr << "FATAL ERROR: Unable to generate the InvertedFile." << std::endl;
-		std::cerr << "Reason: could not find 'inputs.txt' containing the list of input files." << std::endl;
+		std::cerr << "Details: could not find 'inputs.txt' containing the list of input files." << std::endl;
 		return false;
 	}
 
+	std::cout << std::endl;
 	std::cout << "Parsing the input files..." << std::endl;
 
 	for (std::string path; std::getline(inputs, path);)
@@ -76,7 +69,7 @@ bool makeInvertedFile(InvertedFile_t& IF)
 		std::cout << path << std::endl;
 
 		try {
-			process_file(path, [&] (DocumentData_t& document) {
+			file_documents_process(path, [&] (DocumentData_t& document) {
 				invertedFileAdd(IF, document.DOCID, document.TEXT);
 			});
 		}
@@ -99,25 +92,32 @@ bool makeInvertedFile(InvertedFile_t& IF)
 
 int main(int argc, char * argv[])
 {
-	InvertedFile_t IF;
-
 	try
 	{
+		InvertedFile_t IF;
+
+		std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
 		if (IFImport(IF, "InvertedFile.bin"))
 		{
-			std::cout << "Loaded InvertedFile.bin successfully." << std::endl;
+			std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
 		}
 		else
 		{
-			if (!makeInvertedFile(IF)) return 1;
+			std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
+			std::cout << std::endl;
 
+			std::cout << "Generating the InvertedFile..." << std::endl;
+			if (!makeInvertedFile(IF)) return 1;
+			std::cout << "Generated the InvertedFile successfully." << std::endl;
+			std::cout << std::endl;
+
+			std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
 			if (!IFExport(IF, "InvertedFile.bin"))
 			{
-				std::cout << "FATAL ERROR: Unable to save InvertedFile in 'InvertedFile.bin'." << std::endl;
+				std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
 				return 1;
 			}
-
-			std::cout << "Generated InvertedFile.bin successfully." << std::endl;
+			std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
 		}
 		std::cout << std::endl;
 
@@ -125,12 +125,40 @@ int main(int argc, char * argv[])
 
 		return 0;
 	}
-	catch (custom_exception&)
-	{
 
-	}
 	catch (...)
 	{
+		std::cout << std::endl;
 
+		std::cerr << "FATAL ERROR: uncaught exception." << std::endl;
+
+		try
+		{
+			/*re*/throw;
+		}
+		catch (const custom_exception& e)
+		{
+			switch (e)
+			{
+			case custom_exception::fs_access:
+				std::cerr << "Details: error on file i/o operations." << std::endl;
+				break;
+			case custom_exception::parsing_error:
+				std::cerr << "Details: incorrect file structure." << std::endl;
+				break;
+			default:
+				break;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "Details: " << e.what() << std::endl;
+		}
+		catch (...)
+		{
+		}
+
+		std::cout << "Aborting." << std::endl;
+		return 1;
 	}
 }
