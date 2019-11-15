@@ -29,12 +29,6 @@ inline void binRead<unsigned int>(std::istream& is, unsigned int& value)
 {
 	unsigned char bits[4];
 	is.read(reinterpret_cast<char*>(&bits[0]), 4);
-
-	// value = 0;
-	// for (int b = 0; b < 4; b++)
-	// {
-	// 	value |= bits[b] << (8*b);
-	// }
 	value = (((bits[3]) * 256 + bits[2]) * 256 + bits[1]) * 256 + bits[0];
 }
 template<>

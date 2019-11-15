@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <list>
 #include <vector>
 #include <string>
@@ -103,3 +104,82 @@ bool tryParseDate(const std::vector<std::string>& words, Date_t& date);
 * the resulting string is allocated with its final size to avoid reallocation when appending each substring
 **/
 std::string stringJoin(const std::list<std::string>& data, char sep = ' ');
+
+
+template <typename Key, typename Value, typename MergedValue, class Aggregator>
+std::map<Key,MergedValue> mapIntersect(const std::map<Key,Value>& lhs, const std::map<Key,Value>& rhs)
+{
+	std::map<Key,MergedValue> result;
+	for (auto itl = lhs.begin(), itr = rhs.begin(), endl = lhs.end(), endr = rhs.end(); itl != endl && itr != endr; )
+	{
+		if (itl->first == itr->first)
+		{
+			result[itl->first] = Aggregator(itl->second, itr->second);
+			++itl; ++itr;
+		}
+		else
+		{
+			if (itl->first < itr->first)
+				++itl;
+			else
+				++itr;
+		}
+	}
+	return result;
+}
+
+template <typename Key, typename Value, typename MergedValue, class Aggregator_t>
+std::map<Key, MergedValue> mapIntersection(const std::map<Key, Value>& lhs, const std::map<Key, Value>& rhs, Aggregator_t aggregator)
+{
+	std::map<Key, MergedValue> result;
+	auto endl = lhs.cend();
+	auto endr = rhs.cend();
+	for (auto itl = lhs.cbegin(), itr = rhs.cbegin();;)
+	{
+		if (itl->first == itr->first)
+		{
+			result[itl->first] = aggregator(itl->second, itr->second);
+			if (++itl == endl || ++itr == endr) break;
+		}
+		else if (itl->first < itr->first)
+		{
+			if (++itl == endl) break;
+		}
+		else
+		{
+			if (++itr == endr) break;
+		}
+	}
+	return result;
+}
+
+template <typename Key, typename Value, typename MergedValue, class Aggregator_t, class AggregatorUnique_t>
+std::map<Key, MergedValue> mapUnion(const std::map<Key, Value>& lhs, const std::map<Key, Value>& rhs, Aggregator_t aggregator, AggregatorUnique_t aggregatorUnique)
+{
+	std::map<Key, MergedValue> result;
+	auto itl = lhs.cbegin(), endl = lhs.cend();
+	auto itr = rhs.cbegin(), endr = rhs.cend();
+	for (;;)
+	{
+		if (itl->first == itr->first)
+		{
+			result[itl->first] = aggregator(itl->second, itr->second);
+			++itl;
+			++itr;
+			if (itl == endl || itr == endr) break;
+		}
+		else if (itl->first < itr->first)
+		{
+			result[itl->first] = aggregatorUnique(itl->second);
+			if (++itl == endl) break;
+		}
+		else if (itr->first < itl->first)
+		{
+			result[itr->first] = aggregatorUnique(itr->second);
+			if (++itr == endr) break;
+		}
+	}
+	for (; itl != endl; ++itl) result[itl->first] = aggregatorUnique(itl->second);
+	for (; itr != endr; ++itr) result[itr->first] = aggregatorUnique(itr->second);
+	return result;
+}

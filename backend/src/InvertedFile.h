@@ -1,89 +1,30 @@
 #pragma once
 
 #include <map>
+#include <vector>
+
+#include "DocumentParser.h"
 
 #include "files.h"
 
-/**
-* Word entry keeping the frequency of a word in a specific document
-**/
-struct InvertedFileWordEntry_t {
-	unsigned int docID;
-	unsigned int frequency;
+typedef unsigned int DocumentUID_t;
+typedef unsigned int Frequency_t;
 
-	InvertedFileWordEntry_t(unsigned int docID, unsigned int frequency)
-		: docID(docID), frequency(frequency)
-	{}
-
+struct DocFreq_t {
+	DocumentUID_t docID;
+	Frequency_t frequency;
 };
 
-typedef std::pair<unsigned int, unsigned int> InvertedFileEntry_t;
+typedef std::pair<DocumentUID_t, Frequency_t> InvertedFileEntry_t;
+typedef std::vector<InvertedFileEntry_t> InvertedFileRow_t;
 
-typedef std::map<std::string, std::vector<InvertedFileEntry_t>> InvertedFile_t;
+typedef std::map<std::string, InvertedFileRow_t> InvertedFile_t;
 
 
-inline void invertedFileAdd (InvertedFile_t& IF, int docID, const TFID_t& TFID)
-{
-	for (const auto& wordfreq : TFID)
-	{
-		IF[wordfreq.first].emplace_back(docID, wordfreq.second);
-	}
-}
+void invertedFileAdd(InvertedFile_t& IF, int docID, const TFID_t& TFID);
 
-inline bool IFExport(const InvertedFile_t& IF, const std::string& path)
-{
-	std::ofstream os(path, std::ios::out | std::ios::binary | std::ios::trunc);
-	if (!os) return false;
-	
-	unsigned int count = IF.size();
-	binWrite<unsigned int>(os, count);
+bool IFExport(const InvertedFile_t& IF, const std::string& path);
 
-	std::map<std::string, unsigned int> addresses;
+bool IFImport(InvertedFile_t& IF, const std::string& path);
 
-	for (auto& it : IF)
-	{
-		addresses[it.first] = 0;
-	}
-	
-	std::streampos fptr_begin = os.tellp();
-	binWrite_map<std::string, unsigned int>(os, addresses);
-
-	for (auto& it : IF)
-	{
-		std::streampos fptr_addr = os.tellp();
-		addresses[it.first] = static_cast<unsigned int>(fptr_addr - fptr_begin);
-
-		binWrite_vec<unsigned int, unsigned int>(os, it.second);
-	}
-
-	os.seekp(fptr_begin);
-	binWrite_map<std::string, unsigned int>(os, addresses);
-
-	return true;
-}
-
-inline bool IFImport(InvertedFile_t& IF, const std::string& path)
-{
-	std::ifstream is(path, std::ios::in | std::ios::binary);
-	if (!is) return false;
-	
-	unsigned int count;
-	binRead<unsigned int>(is, count);
-
-	std::streampos fptr_begin = is.tellg();
-
-	std::map<std::string, unsigned int> addresses;
-	binRead_map<std::string, unsigned int>(is, addresses);
-
-	IF.clear();
-	for (auto& it : addresses)
-	{
-		std::streampos fptr_addr = static_cast<std::streampos>(it.second);
-		is.seekg(fptr_addr + fptr_begin);
-
-		auto& vec = IF[it.first];
-		binRead_vec<unsigned int, unsigned int>(is, vec);
-	}
-
-	return true;
-}
+bool IFImportPart(InvertedFile_t& IF, const std::string& path, const std::vector<std::string>& words);

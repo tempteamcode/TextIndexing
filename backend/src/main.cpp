@@ -6,6 +6,7 @@
 #include "DocumentExtractor.h"
 #include "DocumentParser.h"
 #include "InvertedFile.h"
+#include "search.h"
 
 
 template <class callback_t>
@@ -95,6 +96,14 @@ int main(int argc, char * argv[])
 	try
 	{
 		InvertedFile_t IF;
+
+		/*
+		IFImportPart(IF, "InvertedFile.bin", std::vector<std::string>({ "hello", "Steve" }));
+		auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+		auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+
+		return 0;
+		*/
 
 		std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
 		if (IFImport(IF, "InvertedFile.bin"))
