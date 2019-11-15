@@ -6,6 +6,7 @@
 #include "DocumentExtractor.h"
 #include "DocumentParser.h"
 #include "InvertedFile.h"
+#include "search.h"
 
 
 template <class callback_t>
