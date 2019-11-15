@@ -1,0 +1,53 @@
+<div class="container">
+    <h4>Search through the collection</h4>
+    <div class="row">
+      <i>Type a list of words blank separated</i>
+    </div>
+    <div class="row">
+
+      <div class="input-field col s7">
+        <input type="text" [(ngModel)]="searchWords" placeholder="banana keyboard"/>
+      </div>
+      <div class="input-field col s4">
+        <select #searchTypeSelector>
+          <option value="-1" disabled selected>Choose your option</option>
+          <option value="0">
+            All words
+          </option>
+          <option value="1">
+            At least one
+          </option>
+        </select>
+      </div>
+      <div class="col s1">
+        <button class="btn waves-effect waves-light blue lighten-2" (click)="search()">Go</button>
+      </div>
+    </div>
+
+</div>
+
+<div class="container">
+  <hr/>
+</div>
+
+
+<div class="container" *ngIf="!researchResults">
+    <h5 class="center-align"><i>Start a research to get results</i></h5>
+    <br/>
+</div>
+
+<div class="container" *ngIf="researchResults">
+    <h4>Results</h4>
+    <div class="row">
+      <i>You got {{researchResults.resultCount}} documents matching your search</i>
+    </div>
+    <div class="row" *ngFor="let item of researchResults.results">
+      <div class="col s4">
+        <b>{{item.docId}}</b>
+      </div>
+      <div class="col s8">
+        Received a score of 
+        <b>{{item.score}}</b>
+      </div>
+    </div>
+</div>
