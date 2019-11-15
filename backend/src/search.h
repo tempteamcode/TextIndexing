@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <iterator>
 #include <algorithm>
 
 #include "InvertedFile.h"
@@ -34,7 +35,32 @@ auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) { return mapIntersection
 auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) { return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>); };
 
 
+typedef std::vector<DocFreq_t> SearchResults_t;
 typedef std::map<DocumentUID_t, Frequency_t> result_t;
+
+
+/*
+inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0)
+{
+	SearchResults_t searchresults(results.begin(), results.end());
+	sort(searchresults.begin(), searchresults.end(), [] (DocFreq_t& lhs, DocFreq_t& rhs) { return lhs.frequency >= rhs.frequency; });
+	if (maxcount != 0 && searchresults.size() > maxcount) searchresults.resize(maxcount);
+	return searchresults;
+}
+*/
+
+inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0)
+{
+	SearchResults_t searchresults;
+	searchresults.reserve(results.size());
+	for (auto& result : results)
+	{
+		searchresults.push_back({ result.first, result.second });
+	}
+	sort(searchresults.begin(), searchresults.end(), [](DocFreq_t& lhs, DocFreq_t& rhs) { return lhs.frequency >= rhs.frequency; });
+	if (maxcount != 0 && searchresults.size() > maxcount) searchresults.resize(maxcount);
+	return searchresults;
+}
 
 
 template <class Aggregator_t>

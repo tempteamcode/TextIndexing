@@ -132,19 +132,22 @@ template <typename Key, typename Value, typename MergedValue, class Aggregator_t
 std::map<Key, MergedValue> mapIntersection(const std::map<Key, Value>& lhs, const std::map<Key, Value>& rhs, Aggregator_t aggregator)
 {
 	std::map<Key, MergedValue> result;
-	for (auto itl = lhs.cbegin(), itr = rhs.cbegin(), endl = lhs.cend(), endr = rhs.cend(); itl != endl && itr != endr; )
+	auto endl = lhs.cend();
+	auto endr = rhs.cend();
+	for (auto itl = lhs.cbegin(), itr = rhs.cbegin();;)
 	{
 		if (itl->first == itr->first)
 		{
 			result[itl->first] = aggregator(itl->second, itr->second);
-			++itl; ++itr;
+			if (++itl == endl || ++itr == endr) break;
+		}
+		else if (itl->first < itr->first)
+		{
+			if (++itl == endl) break;
 		}
 		else
 		{
-			if (itl->first < itr->first)
-				++itl;
-			else
-				++itr;
+			if (++itr == endr) break;
 		}
 	}
 	return result;
@@ -154,23 +157,29 @@ template <typename Key, typename Value, typename MergedValue, class Aggregator_t
 std::map<Key, MergedValue> mapUnion(const std::map<Key, Value>& lhs, const std::map<Key, Value>& rhs, Aggregator_t aggregator, AggregatorUnique_t aggregatorUnique)
 {
 	std::map<Key, MergedValue> result;
-	for (auto itl = lhs.cbegin(), itr = rhs.cbegin(), endl = lhs.cend(), endr = rhs.cend(); itl != endl && itr != endr; )
+	auto itl = lhs.cbegin(), endl = lhs.cend();
+	auto itr = rhs.cbegin(), endr = rhs.cend();
+	for (;;)
 	{
 		if (itl->first == itr->first)
 		{
 			result[itl->first] = aggregator(itl->second, itr->second);
-			++itl; ++itr;
+			++itl;
+			++itr;
+			if (itl == endl || itr == endr) break;
 		}
 		else if (itl->first < itr->first)
 		{
 			result[itl->first] = aggregatorUnique(itl->second);
-			++itl;
+			if (++itl == endl) break;
 		}
 		else if (itr->first < itl->first)
 		{
 			result[itr->first] = aggregatorUnique(itr->second);
-			++itr;
+			if (++itr == endr) break;
 		}
 	}
+	for (; itl != endl; ++itl) result[itl->first] = aggregatorUnique(itl->second);
+	for (; itr != endr; ++itr) result[itr->first] = aggregatorUnique(itr->second);
 	return result;
 }

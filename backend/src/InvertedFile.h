@@ -8,21 +8,13 @@
 #include "files.h"
 
 typedef unsigned int DocumentUID_t;
+typedef unsigned int Frequency_t;
 
-/**
-* Word entry keeping the frequency of a word in a specific document
-**/
-struct InvertedFileWordEntry_t {
+struct DocFreq_t {
 	DocumentUID_t docID;
-	unsigned int frequency;
-
-	InvertedFileWordEntry_t(unsigned int docID, unsigned int frequency)
-		: docID(docID), frequency(frequency)
-	{}
-
+	Frequency_t frequency;
 };
 
-typedef unsigned int Frequency_t;
 typedef std::pair<DocumentUID_t, Frequency_t> InvertedFileEntry_t;
 typedef std::vector<InvertedFileEntry_t> InvertedFileRow_t;
 
