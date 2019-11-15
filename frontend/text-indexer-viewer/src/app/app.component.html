@@ -1,0 +1,37 @@
+
+<nav>
+  <div class="nav-wrapper">
+    <a href="#!" class="brand-logo">Text indexer viewer</a>
+    <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    <ul class="right hide-on-med-and-down">
+      <li><a routerLink="/document" routerLink="active">Document</a></li>
+      <li><a routerLink="/document" routerLink="active">Inverted file</a></li>
+    </ul>
+  </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+  <li><a routerLink="/document" routerLink="active">Document</a></li>
+  <li><a routerLink="/document" routerLink="active">Inverted file</a></li>
+</ul>
+
+<router-outlet></router-outlet>
+
+<footer class="page-footer">
+  <div class="container">
+    <div class="row">
+      <div class="col l12 s12">
+        <h5 class="white-text">Made by</h5>
+        <p class="grey-text text-lighten-4">Nathan Mesnard, Quentin "Johnny" Guye, Tianjian Ye et Paul-Emmanuel Sotir</p>
+      </div>
+      <div class="col l4 offset-l2 s12">
+      </div>
+    </div>
+  </div>
+  <div class="footer-copyright">
+    <div class="container">
+    Text indexer © 2019
+    <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
+    </div>
+  </div>
+</footer>
