@@ -6,7 +6,7 @@
 #include "DocumentExtractor.h"
 #include "utility.h"
 
-typedef std::unordered_map<std::string, unsigned int> TFID_t;
+typedef std::unordered_map<std::string, unsigned int> TFC_t;
 
 struct DocumentData_t
 {
@@ -15,13 +15,13 @@ struct DocumentData_t
 	Date_t DATE;
 	// SECTION
 	unsigned int LENGTH = 0;
-	TFID_t HEADLINE;
+	TFC_t HEADLINE;
 	// BYLINE
 	// DATELINE
-	TFID_t TEXT;
-	std::list<TFID_t> GRAPHICs;
+	TFC_t TEXT;
+	std::list<TFC_t> GRAPHICs;
 	// TYPE
-	TFID_t SUBJECT;
+	TFC_t SUBJECT;
 	// CORRECTION-DATE
 	// CORRECTION
 };
@@ -31,7 +31,7 @@ void print_tags(const DocumentTree_t& tag, std::string indent);
 
 std::vector<string_view> extractTokens(const std::string& data);
 
-void extractTokens(const std::string& data, TFID_t& dest);
+void extractTokens(const std::string& data, TFC_t& dest);
 
 template<class callback_t>
 void extractTokens(const std::string& data, callback_t callback)

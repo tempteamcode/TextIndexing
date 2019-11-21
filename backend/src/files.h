@@ -38,6 +38,34 @@ inline void binSkip<unsigned int>(std::istream& is)
 }
 
 template<>
+inline void binWrite<float>(std::ostream& os, const float& value)
+{
+	char bits[sizeof(float)];
+	const char* ptr = reinterpret_cast<const char*>(&value);
+	for (int b = 0; b < sizeof(float); b++)
+	{
+		bits[b] = *ptr++;
+	}
+	os.write(&bits[0], sizeof(float));
+}
+template<>
+inline void binRead<float>(std::istream& is, float& value)
+{
+	char bits[sizeof(float)];
+	is.read(&bits[0], sizeof(float));
+	char* ptr = reinterpret_cast<char*>(&value);
+	for (int b = 0; b < sizeof(float); b++)
+	{
+		*ptr++ = bits[b];
+	}
+}
+template<>
+inline void binSkip<float>(std::istream& is)
+{
+	is.ignore(sizeof(float));
+}
+
+template<>
 inline void binWrite<std::string>(std::ostream& os, const std::string& text)
 {
 	unsigned int length = text.length();

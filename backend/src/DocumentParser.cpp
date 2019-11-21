@@ -32,7 +32,7 @@ std::vector<string_view> extractTokens(const std::string& data)
 	return result;
 }
 
-void extractTokens(const std::string& data, TFID_t& dest)
+void extractTokens(const std::string& data, TFC_t& dest)
 {
 	extractTokens(data, [&] (const string_view& word_view) {
 		dest[std::string(word_view)]++;

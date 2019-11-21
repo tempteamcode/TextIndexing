@@ -3,6 +3,24 @@
 #include "InvertedFile.h"
 
 
+TFID_t TFC_to_TFID(const TFC_t& src)
+{
+	TFID_t result;
+
+	unsigned int total = 0;
+	for (const auto& item : src)
+	{
+		total += item.second;
+	}
+
+	for (auto it = src.begin(); it != src.cend(); ++it)
+	{
+		result[it->first] = ((float) it->second) / total;
+	}
+
+	return result;
+}
+
 void invertedFileAdd(InvertedFile_t& IF, int docID, const TFID_t& TFID)
 {
 	for (const auto& wordfreq : TFID)

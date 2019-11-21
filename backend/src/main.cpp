@@ -71,7 +71,8 @@ bool makeInvertedFile(InvertedFile_t& IF)
 
 		try {
 			file_documents_process(path, [&] (DocumentData_t& document) {
-				invertedFileAdd(IF, document.DOCID, document.TEXT);
+				TFID_t document_TFID = TFC_to_TFID(document.TEXT);
+				invertedFileAdd(IF, document.DOCID, document_TFID);
 			});
 		}
 		catch (custom_exception& e)
