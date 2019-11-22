@@ -6,8 +6,14 @@
 #include "src/DocumentExtractor.h"
 #include "src/DocumentParser.h"
 #include "src/InvertedFile.h"
-#include "src/search.h"
+// #include "src/search.h"
 
+#include "includes/json.hpp"
+
+using json = nlohmann::json;
+
+
+#define RETURN_ON_FAILURE( ret ) { if( ret ) return ret; }
 
 template <class callback_t>
 void file_tagsdata_process(const std::string& path, callback_t callback)
@@ -141,6 +147,110 @@ bool parseArgs(int argc, char * argv[])
 		return false;
 }
 
+
+
+
+// ======== Modes
+
+/**
+* Generate the inverted file if needed.
+* @return 0 if it worked, 1 if an error occured
+*/
+int invertedFileGeneration( void ) {
+
+	InvertedFile_t IF;
+
+	std::cout << "Generating the InvertedFile..." << std::endl;
+	if (!makeInvertedFile(IF)) return 1;
+
+	std::cout << "Generated the InvertedFile successfully." << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
+	if (!IFExport(IF, "InvertedFile.bin"))
+	{
+		std::cerr << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
+		return 1;
+	}
+	std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
+	std::cout << std::endl;
+	return 0;
+}
+
+/**
+* Return the result of a query
+* @param words list of the words in the query
+* @return 0 if it worked, 1 if an error occured
+*/
+int searchQueryMode( std::vector< std::string > & words ) {
+
+	// InvertedFile_t IF;
+	//
+	// if (!IFImportPart(IF, "InvertedFile.bin", arguments.query))
+	// {
+	// 	std::cerr << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
+	// 	std::cerr << "Run this program with the argument 'index' to generate it." << std::endl;
+	// 	return 1;
+	// }
+	//
+	// auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	// auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+	//
+	// auto resultsShow = [&](const SearchResults_t& results, const char* name) {
+	// 	std::cout << "Top 10 (" << name << "):" << std::endl;
+	// 	int index = 0;
+	// 	for (auto& result : results)
+	// 	{
+	// 		std::cout << (++index) << ". document " << result.docID << " (frequency: " << result.frequency << ")" << std::endl;
+	// 	}
+	// 	std::cout << std::endl;
+	// };
+	//
+	// resultsShow(resultsConjunction, "naive search conjunction");
+	// resultsShow(resultsDisjunction, "naive search disjunction");
+
+	return 0;
+}
+
+
+/**
+* Return a specific document
+*/
+int documentQueryMode( unsigned int documentID ) {
+
+	//TODO document query
+	std::cout
+		<< "{ code: 503, message: \"Not supported yet\", document: null }"
+		<< std::endl;
+
+	return 0;
+
+}
+
+int importInvertedFile( void ) {
+
+	InvertedFile_t IF;
+
+	std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
+	if (IFImport(IF, "InvertedFile.bin"))
+	{
+		std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
+	}
+	else
+	{
+		std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+
+	return 0;
+}
+
+// ======== Where the magic happens!
+
+
+
 int main(int argc, char * argv[])
 {
 	if (argc <= 1)
@@ -164,75 +274,29 @@ int main(int argc, char * argv[])
 
 	try
 	{
-		InvertedFile_t IF;
+
+		int ret;
 
 		if (arguments.index || (arguments.query.empty() && (arguments.documentID == 0)))
 		{
-			std::cout << "Generating the InvertedFile..." << std::endl;
-			if (!makeInvertedFile(IF)) return 1;
-			std::cout << "Generated the InvertedFile successfully." << std::endl;
-			std::cout << std::endl;
-
-			std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
-			if (!IFExport(IF, "InvertedFile.bin"))
-			{
-				std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
-				return 1;
-			}
-			std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
-			std::cout << std::endl;
+			RETURN_ON_FAILURE( invertedFileGeneration( ) );
 		}
 
-		if (!arguments.query.empty())
+		if (!arguments.query.empty() )
 		{
-			if (!IFImportPart(IF, "InvertedFile.bin", arguments.query))
-			{
-				std::cout << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
-				std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
-				return 1;
-			}
-
-			auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-			auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
-
-			auto resultsShow = [&](const SearchResults_t& results, const char* name) {
-				std::cout << "Top 10 (" << name << "):" << std::endl;
-				int index = 0;
-				for (auto& result : results)
-				{
-					std::cout << (++index) << ". document " << result.docID << " (frequency: " << result.frequency << ")" << std::endl;
-				}
-				std::cout << std::endl;
-			};
-
-			resultsShow(resultsConjunction, "naive search conjunction");
-			resultsShow(resultsDisjunction, "naive search disjunction");
+			RETURN_ON_FAILURE( searchQueryMode( arguments.query ) );
 		}
 		else if (arguments.documentID > 0)
 		{
-			std::cout << "ERROR: loading an article from an ID has not yet been implemented." << std::endl;
-
-			// ... // TODO
-			return 1;
+			RETURN_ON_FAILURE( documentQueryMode( arguments.documentID ) );
 		}
 		else if (!arguments.index)
 		{
-			IF.clear();
-			std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
-			if (IFImport(IF, "InvertedFile.bin"))
-			{
-				std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
-			}
-			else
-			{
-				std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
-			}
-			std::cout << std::endl;
-
-			std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+			RETURN_ON_FAILURE( importInvertedFile( ) );
 		}
 
 		return 0;
+
 	}
 
 	catch (...)
