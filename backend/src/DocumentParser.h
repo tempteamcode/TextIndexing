@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <string>
 #include <unordered_map>
 
@@ -27,7 +28,16 @@ struct DocumentData_t
 	// CORRECTION
 };
 
+struct DocumentJSON_t
+{
+	Date_t date;
+	std::string title;
+	std::vector<std::string> contents;
+};
 
+
+bool stemming_stopword(std::string& word);
+ 
 void print_tags(const DocumentTree_t& tag, std::string indent);
 
 std::vector<string_view> extractTokens(const std::string& data);
@@ -48,17 +58,18 @@ void extractTokens(const std::string& data, callback_t callback)
 	}
 }
 
-bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document);
+void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document);
+
+void extractDocumentJSON(DocumentTree_t& document_tree, DocumentJSON_t& documentJSON);
 
 template<class callback_t>
-void extractDocuments(DocumentTree_t& documents, callback_t callback)
+void consumeDocuments(DocumentTree_t& documents, callback_t callback)
 {
-	DocumentData_t document;
-
-	for (;;)
+	for (auto it = documents.tags.begin(); it != documents.tags.end(); it = documents.tags.erase(it))
 	{
-		if (!extractDocumentData(documents, document)) break;
-
-		callback(document);
+		if ((*it).name == "DOC")
+		{
+			callback(*it);
+		}
 	}
 }

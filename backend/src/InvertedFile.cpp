@@ -21,7 +21,7 @@ TFID_t TFC_to_TFID(const TFC_t& src)
 	return result;
 }
 
-void invertedFileAdd(InvertedFile_t& IF, int docID, const TFID_t& TFID)
+void invertedFileAdd(InvertedFile_t& IF, DocumentUID_t docID, const TFID_t& TFID)
 {
 	for (const auto& wordfreq : TFID)
 	{

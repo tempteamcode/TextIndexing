@@ -1,9 +1,9 @@
 #include "DocumentParser.h"
 
 #include <iostream>
+#include <algorithm>
 
 #include "Tokenizer.h"
-
 #include "Stemmer.h"
 #include "Stopwords.h"
 
@@ -66,31 +66,16 @@ bool stemming_stopword(std::string& word)
 
 	if (lettersonly)
 	{
+		if (isStopword(word)) return false;
 		stem(word);
-		return !isStopword(word);
 	}
-	else
-	{
-		return true;
-	}
+
+	return true;
 }
 
-bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document)
+void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document)
 {
-	DocumentTree_t* root = nullptr;
-
-	for (DocumentTree_t& tag : documents.tags)
-	{
-		if (tag.name == "DOC")
-		{
-			root = &tag;
-			break;
-		}
-	}
-
-	if (root == nullptr) return false;
-
-	document = DocumentData_t();
+	DocumentTree_t* const root = &document_tree;
 
 	for (DocumentTree_t& tag : root->tags)
 	{
@@ -221,15 +206,70 @@ bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document)
 			print_tags(tag, "");
 		}
 	}
+}
 
-	for (auto it = documents.tags.begin(); it != documents.tags.end(); ++it)
+void extractDocumentJSON(DocumentTree_t& document_tree, DocumentJSON_t& documentJSON)
+{
+	DocumentTree_t* const root = &document_tree;
+
+	for (DocumentTree_t& tag : root->tags)
 	{
-		if (&(*it) == root)
+		if (tag.name == "DATE")
 		{
-			documents.tags.erase(it);
-			break;
+			for (auto& subtag : tag.tags)
+			{
+				if (subtag.name != "P") continue;
+
+				auto words_view = extractTokens(subtag.data);
+
+				if (words_view.size() == 2 && words_view[0] == "Correction" && words_view[1] == "Appended") continue;
+
+				std::vector<std::string> words;
+				words.reserve(words_view.size());
+				for (auto& word_view : words_view) words.push_back(std::string(word_view));
+
+				Date_t date;
+				if (tryParseDate(words, date))
+				{
+					documentJSON.date = date;
+				}
+			}
+		}
+		else if (tag.name == "HEADLINE")
+		{
+			std::swap(documentJSON.title, tag.data);
+			continue; // TODO: implement
+		}
+		else if (tag.name == "TEXT")
+		{
+			documentJSON.contents.push_back("");
+			std::swap((*documentJSON.contents.rbegin()), tag.data);
+
+			for (auto& subtag : tag.tags)
+			{
+				if (subtag.name == "P")
+				{
+					documentJSON.contents.push_back("");
+					std::swap((*documentJSON.contents.rbegin()), tag.data);
+				}
+			}
+		}
+		else if (tag.name == "P")
+		{
+			documentJSON.contents.push_back("");
+			std::swap((*documentJSON.contents.rbegin()), tag.data);
+		}
+		else if (tag.name == "GRAPHIC")
+		{
+			continue; //TODO: implement
+		}
+		else if (tag.name == "SUBJECT")
+		{
+			continue; //TODO: implement
+		}
+		else if (tag.name == "SECTION" || tag.name == "BYLINE" || tag.name == "DATELINE" || tag.name == "TYPE" || tag.name == "CORRECTION-DATE" || tag.name == "CORRECTION")
+		{
+			// these tags are (currently) ignored
 		}
 	}
-
-	return true;
 }

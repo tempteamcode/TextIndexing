@@ -1,9 +1,20 @@
-#include <algorithm>
-
 #include "utility.h"
+
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
 
 const std::vector<std::string> names_months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
 const std::vector<std::string> names_weekdays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
+
+Date_t::operator std::string() const
+{
+	std::ostringstream formatted;
+	formatted << std::setfill('0') << std::setw(4) << year;
+	formatted << std::setfill('0') << std::setw(2) << int(month);
+	formatted << std::setfill('0') << std::setw(2) << day;
+	return formatted.str();
+}
 
 bool operator ==(const string_view& str_view, const char* text)
 {
@@ -69,6 +80,24 @@ bool tryParseDate(const std::vector<std::string>& words, Date_t& date)
 	date.weekday = static_cast<Date_t::weekday_t>(it_weekday - names_weekdays.cbegin() + 1);
 
 	return true;
+}
+
+std::string stringJoin(const std::vector<std::string>& data, const std::string& sep)
+{
+	size_t totalsize = (data.size() + 1) * sep.size();
+	for (const std::string& str : data) totalsize += str.size();
+
+	std::string result;
+	result.reserve(totalsize);
+
+	for (const std::string& str : data)
+	{
+		result += str;
+		result += sep;
+	}
+
+	if (!result.empty()) result.resize(result.size() - 1 * sep.size());
+	return result;
 }
 
 std::string stringJoin(const std::list<std::string>& data, char sep)

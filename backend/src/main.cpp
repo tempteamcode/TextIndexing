@@ -7,7 +7,10 @@
 #include "DocumentParser.h"
 #include "InvertedFile.h"
 #include "search.h"
+#include "utility.h"
 
+
+typedef unsigned_ints FileDocumentUID_t;
 
 template <class callback_t>
 void file_tagsdata_process(const std::string& path, callback_t callback)
@@ -39,40 +42,79 @@ void file_documents_process(const std::string& path, callback_t callback)
 		docextractor.parseTagOrData(tagordata);
 	});
 
-	extractDocuments(docextractor.getDocument(), callback);
+	consumeDocuments(docextractor.getDocument(), callback);
 }
 
 void file_documents_print(const std::string& path)
 {
-	file_documents_process(path, [] (DocumentData_t& document) {
+	file_documents_process(path, [] (DocumentTree_t& document_tree) {
+		DocumentData_t document;
+		extractDocumentData(document_tree, document);
 		std::cout << document.DOCNO << std::endl;
 	});
 }
 
 
-bool makeInvertedFile(InvertedFile_t& IF)
+bool loadInputFiles(std::vector<std::string>& input_files)
 {
 	std::ifstream inputs("inputs.txt");
-	if (!inputs)
+	if (!inputs) return false;
+
+	input_files.clear();
+
+	std::string path;
+	for (;std::getline(inputs, path);)
 	{
-		std::cerr << "FATAL ERROR: Unable to generate the InvertedFile." << std::endl;
-		std::cerr << "Details: could not find 'inputs.txt' containing the list of input files." << std::endl;
-		return false;
+		if (path.empty()) continue;
+
+		input_files.push_back(path);
 	}
 
-	std::cout << std::endl;
+	return true;
+}
+
+bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentUID_t ID, DocumentJSON_t& documentJSON)
+{
+	const std::string& input_file = input_files[ID.first];
+
+	unsigned int documentID = 0;
+
+	bool found = false;
+	file_documents_process(input_file, [&] (DocumentTree_t& document_tree) {
+		if (++documentID == ID.second)
+		{
+			extractDocumentJSON(document_tree, documentJSON);
+			found = true;
+		}
+	});
+
+	return found;
+}
+
+void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_t& IF)
+{
 	std::cout << "Parsing the input files..." << std::endl;
 
-	for (std::string path; std::getline(inputs, path);)
+	FileDocumentUID_t filedocumentID;
+
+	filedocumentID.first = 0;
+	for (const std::string& path : input_files)
 	{
 		if (path.empty()) continue;
 
 		std::cout << path << std::endl;
+		filedocumentID.first++;
 
+		filedocumentID.second = 0;
 		try {
-			file_documents_process(path, [&] (DocumentData_t& document) {
+			file_documents_process(path, [&] (DocumentTree_t& document_tree) {
+				filedocumentID.second++;
+
+				DocumentData_t document;
+				extractDocumentData(document_tree, document);
+
 				TFID_t document_TFID = TFC_to_TFID(document.TEXT);
-				invertedFileAdd(IF, document.DOCID, document_TFID);
+				invertedFileAdd(IF, DocumentUID_t(filedocumentID), document_TFID);
 			});
 		}
 		catch (custom_exception& e)
@@ -88,8 +130,6 @@ bool makeInvertedFile(InvertedFile_t& IF)
 	}
 
 	std::cout << std::endl;
-
-	return true;
 }
 
 struct {
@@ -97,16 +137,6 @@ struct {
 	std::vector<std::string> query;
 	unsigned int documentID;
 } arguments;
-
-bool streq(const char* str1, const char* str2)
-{
-	for (;;)
-	{
-		if (*str1 != *str2) return false;
-		if (*str1 == '\0') return true;
-		str1++; str2++;
-	}
-}
 
 bool parseArgs(int argc, char * argv[])
 {
@@ -142,6 +172,13 @@ bool parseArgs(int argc, char * argv[])
 
 int main(int argc, char * argv[])
 {
+	std::vector<std::string> input_files;
+	if (!loadInputFiles(input_files))
+	{
+		std::cerr << "FATAL ERROR: Unable to load 'inputs.txt' containing the list of input files." << std::endl;
+		return 1;
+	}
+
 	if (argc <= 1)
 	{
 		std::cout << "WARNING: Missing command line arguments." << std::endl;
@@ -167,23 +204,48 @@ int main(int argc, char * argv[])
 
 		if (arguments.index || (arguments.query.empty() && (arguments.documentID == 0)))
 		{
-			std::cout << "Generating the InvertedFile..." << std::endl;
-			if (!makeInvertedFile(IF)) return 1;
-			std::cout << "Generated the InvertedFile successfully." << std::endl;
-			std::cout << std::endl;
-
-			std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
-			if (!IFExport(IF, "InvertedFile.bin"))
+			if (!arguments.index)
 			{
-				std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
-				return 1;
+				std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
+				if (IFImport(IF, "InvertedFile.bin"))
+				{
+					std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
+				}
+				else
+				{
+					std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
+				}
+				std::cout << std::endl;
 			}
-			std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
-			std::cout << std::endl;
+
+			if (IF.empty())
+			{
+				std::cout << "Generating the InvertedFile..." << std::endl;
+				makeInvertedFile(input_files, IF);
+				std::cout << "Generated the InvertedFile successfully." << std::endl;
+				std::cout << std::endl;
+
+				std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
+				if (!IFExport(IF, "InvertedFile.bin"))
+				{
+					std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
+					return 1;
+				}
+				std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
+				std::cout << std::endl;
+			}
 		}
 
 		if (!arguments.query.empty())
 		{
+			auto& words = arguments.query;
+
+			for (std::string& word : arguments.query)
+			{
+				if (!stemming_stopword(word)) word.clear();
+			}
+			words.erase(std::remove_if(words.begin(), words.end(), [] (const std::string& word) { return word.empty(); }), words.end());
+
 			if (!IFImportPart(IF, "InvertedFile.bin", arguments.query))
 			{
 				std::cout << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
@@ -209,24 +271,28 @@ int main(int argc, char * argv[])
 		}
 		else if (arguments.documentID > 0)
 		{
-			std::cout << "ERROR: loading an article from an ID has not yet been implemented." << std::endl;
+			DocumentJSON_t documentJSON;
+			if (!loadDocumentJSON(input_files, FileDocumentUID_t(arguments.documentID), documentJSON))
+			{
+				std::cerr << "ERROR: Could not load the document with ID " << arguments.documentID << "." << std::endl;
+				return 1;
+			}
 
-			// ... // TODO
-			return 1;
+			std::cout << documentJSON.title << (documentJSON.date.empty() ? "" : std::string(documentJSON.date)) << std::endl;
+			std::cout << std::endl;
+
+			std::cout << stringJoin(documentJSON.contents, std::string("\n\n")) << std::endl;
+
+			return 0;
 		}
 		else if (!arguments.index)
 		{
-			IF.clear();
-			std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
-			if (IFImport(IF, "InvertedFile.bin"))
+			if (!IFImport(IF, "InvertedFile.bin"))
 			{
-				std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
+				std::cout << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
+				std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
+				return 1;
 			}
-			else
-			{
-				std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
-			}
-			std::cout << std::endl;
 
 			std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
 		}

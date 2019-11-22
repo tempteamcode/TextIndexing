@@ -1,100 +1,57 @@
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 
+struct unsigned_ints
+{
+	uint16_t first;
+	uint16_t second;
+
+	inline unsigned_ints() = default;
+
+	inline unsigned_ints(uint16_t first, uint16_t second)
+		: first(first), second(second)
+	{}
+
+	inline unsigned_ints(uint32_t values)
+		: first(static_cast<uint16_t>(values >> 16)), second (static_cast<uint16_t>(values))
+	{}
+
+	inline operator uint32_t()
+	{
+		return static_cast<uint32_t>(first) << 16 | static_cast<uint32_t>(second);
+	}
+};
+
 template<typename T>
 void binWrite(std::ostream& os, const T& value);
-
 template<typename T>
 void binRead(std::istream& is, T& value);
-
 template<typename T>
 void binSkip(std::istream& is);
 
+/*
 template<>
-inline void binWrite<unsigned int>(std::ostream& os, const unsigned int& value)
-{
-	unsigned char bits[4];
-	for (int b = 0; b < 4; b++)
-	{
-		bits[b] = (value >> (8*b)) & 0xFF;
-	}
-	os.write(reinterpret_cast<char*>(&bits[0]), 4);
-}
+void binWrite<unsigned int>(std::ostream& os, const unsigned int& value);
 template<>
-inline void binRead<unsigned int>(std::istream& is, unsigned int& value)
-{
-	unsigned char bits[4];
-	is.read(reinterpret_cast<char*>(&bits[0]), 4);
-	value = (((bits[3]) * 256 + bits[2]) * 256 + bits[1]) * 256 + bits[0];
-}
+void binRead<unsigned int>(std::istream& is, unsigned int& value);
 template<>
-inline void binSkip<unsigned int>(std::istream& is)
-{
-	is.ignore(4);
-}
+void binSkip<unsigned int>(std::istream& is);
 
 template<>
-inline void binWrite<float>(std::ostream& os, const float& value)
-{
-	char bits[sizeof(float)];
-	const char* ptr = reinterpret_cast<const char*>(&value);
-	for (int b = 0; b < sizeof(float); b++)
-	{
-		bits[b] = *ptr++;
-	}
-	os.write(&bits[0], sizeof(float));
-}
+void binWrite<std::string>(std::ostream& os, const std::string& text);
 template<>
-inline void binRead<float>(std::istream& is, float& value)
-{
-	char bits[sizeof(float)];
-	is.read(&bits[0], sizeof(float));
-	char* ptr = reinterpret_cast<char*>(&value);
-	for (int b = 0; b < sizeof(float); b++)
-	{
-		*ptr++ = bits[b];
-	}
-}
+void binRead<std::string>(std::istream& is, std::string& text);
 template<>
-inline void binSkip<float>(std::istream& is)
-{
-	is.ignore(sizeof(float));
-}
-
-template<>
-inline void binWrite<std::string>(std::ostream& os, const std::string& text)
-{
-	unsigned int length = text.length();
-	binWrite<unsigned int>(os, length);
-	if (length > 0) os.write(text.c_str(), length);
-}
-template<>
-inline void binRead<std::string>(std::istream& is, std::string& text)
-{
-	unsigned int length; binRead(is, length);
-	if (length > 0)
-	{
-		char* buffer = new char[length + 1];
-		is.read(buffer, length);
-		buffer[length] = '\0';
-		text = buffer;
-		delete[] buffer;
-	}
-	else text.clear();
-}
-template<>
-inline void binSkip<std::string>(std::istream& is)
-{
-	unsigned int length; binRead(is, length);
-	if (length > 0) is.ignore(length);
-}
+void binSkip<std::string>(std::istream& is);
+*/
 
 template<typename T1, typename T2>
-inline void binWrite_vec(std::ostream& os, const std::vector<std::pair<T1, T2>>& vec)
+void binWrite_vec(std::ostream& os, const std::vector<std::pair<T1, T2>>& vec)
 {
 	unsigned int length = vec.size();
 	binWrite<unsigned int>(os, length);
@@ -105,7 +62,7 @@ inline void binWrite_vec(std::ostream& os, const std::vector<std::pair<T1, T2>>&
 	}
 }
 template<typename T1, typename T2>
-inline void binRead_vec(std::istream& is, std::vector<std::pair<T1, T2>>& vec)
+void binRead_vec(std::istream& is, std::vector<std::pair<T1, T2>>& vec)
 {
 	unsigned int length; binRead<unsigned int>(is, length);
 	vec.clear();
@@ -117,7 +74,7 @@ inline void binRead_vec(std::istream& is, std::vector<std::pair<T1, T2>>& vec)
 	}
 }
 template<typename T1, typename T2>
-inline void binSkip_vec(std::istream& is)
+void binSkip_vec(std::istream& is)
 {
 	unsigned int length; binRead<unsigned int>(is, length);
 	for (unsigned int i = 0; i < length; i++)
@@ -128,7 +85,7 @@ inline void binSkip_vec(std::istream& is)
 }
 
 template<typename TK, typename TV>
-inline void binWrite_map(std::ostream& os, const std::map<TK, TV>& map)
+void binWrite_map(std::ostream& os, const std::map<TK, TV>& map)
 {
 	unsigned int length = map.size();
 	binWrite<unsigned int>(os, length);
@@ -139,7 +96,7 @@ inline void binWrite_map(std::ostream& os, const std::map<TK, TV>& map)
 	}
 }
 template<typename TK, typename TV>
-inline void binRead_map(std::istream& is, std::map<TK, TV>& map)
+void binRead_map(std::istream& is, std::map<TK, TV>& map)
 {
 	unsigned int length; binRead<unsigned int>(is, length);
 	map.clear();
@@ -151,7 +108,7 @@ inline void binRead_map(std::istream& is, std::map<TK, TV>& map)
 	}
 }
 template<typename TK, typename TV>
-inline void binSkip_map(std::istream& is)
+void binSkip_map(std::istream& is)
 {
 	unsigned int length; binRead<unsigned int>(is, length);
 	for (unsigned int i = 0; i < length; i++)

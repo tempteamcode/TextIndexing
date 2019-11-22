@@ -24,7 +24,7 @@ typedef std::vector<InvertedFileEntry_t> InvertedFileRow_t;
 
 typedef std::map<std::string, InvertedFileRow_t> InvertedFile_t;
 
-void invertedFileAdd(InvertedFile_t& IF, int docID, const TFID_t& TFID);
+void invertedFileAdd(InvertedFile_t& IF, DocumentUID_t docID, const TFID_t& TFID);
 
 bool IFExport(const InvertedFile_t& IF, const std::string& path);
 

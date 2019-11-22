@@ -53,7 +53,7 @@ private:
 	bool vowelinstem();
 	bool doublec(int j);
 	bool cvc(int i);
-	bool ends(char * s);
+	bool ends(const char * s);
 	void setto(char * s);
 	void r(char * s);
 	void step1ab();
@@ -191,7 +191,7 @@ bool Stemmer::cvc(int i)
 
 /* z->ends(s) is TRUE <=> 0,...k ends with the string s. */
 
-bool Stemmer::ends(char * s)
+bool Stemmer::ends(const char * s)
 {
 	Stemmer* const z = this;
 

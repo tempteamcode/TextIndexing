@@ -30,6 +30,8 @@ struct Date_t
 	{
 		return ((year | static_cast<unsigned char>(month) | day | static_cast<unsigned char>(weekday)) == 0);
 	}
+
+	operator std::string() const;
 };
 
 class string_view
@@ -65,6 +67,16 @@ inline bool isCharAlpha(char c) {
 
 inline bool isCharNumeric(char c) {
 	return (c >= '0' && c <= '9');
+}
+
+inline bool streq(const char* str1, const char* str2)
+{
+	for (;;)
+	{
+		if (*str1 != *str2) return false;
+		if (*str1 == '\0') return true;
+		str1++; str2++;
+	}
 }
 
 bool operator ==(const string_view& str_view, const char* text);
@@ -103,6 +115,7 @@ bool tryParseDate(const std::vector<std::string>& words, Date_t& date);
 * joins several strings into one with linear complexity
 * the resulting string is allocated with its final size to avoid reallocation when appending each substring
 **/
+std::string stringJoin(const std::vector<std::string>& data, const std::string& sep);
 std::string stringJoin(const std::list<std::string>& data, char sep = ' ');
 
 
