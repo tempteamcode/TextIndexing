@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "Files.h"
+#include "files.h"
 #include "Tokenizer.h"
 #include "DocumentExtractor.h"
 #include "DocumentParser.h"
@@ -92,30 +92,81 @@ bool makeInvertedFile(InvertedFile_t& IF)
 	return true;
 }
 
+struct {
+	bool index;
+	std::vector<std::string> query;
+	unsigned int documentID;
+} arguments;
+
+bool streq(const char* str1, const char* str2)
+{
+	for (;;)
+	{
+		if (*str1 != *str2) return false;
+		if (*str1 == '\0') return true;
+		str1++; str2++;
+	}
+}
+
+bool parseArgs(int argc, char * argv[])
+{
+	arguments.index = false;
+	arguments.query.clear();
+	arguments.documentID = 0;
+
+	if (argc == 0) return false;
+
+	if (streq(argv[0], "index"))
+	{
+		arguments.index = true;
+		return (argc <= 1);
+	}
+	else if (streq(argv[0], "query"))
+	{
+		arguments.query.reserve(argc);
+		for (int argi = 1; argi < argc; argi++)
+		{
+			arguments.query.push_back(argv[argi]);
+		}
+		return (argc > 1);
+	}
+	else if (streq(argv[0], "document_json"))
+	{
+		if (argc <= 1) return false;
+		if (!tryParseInt(argv[1], arguments.documentID)) return false;
+		return (argc == 2);
+	}
+	else
+		return false;
+}
+
 int main(int argc, char * argv[])
 {
+	if (argc <= 1)
+	{
+		std::cout << "WARNING: Missing command line arguments." << std::endl;
+		std::cout << std::endl;
+		std::cout << "Available arguments are:" << '\n'
+			<< "- 'index' to (re)build the InvertedFile" << '\n'
+			<< "- 'query <word> <word> ...' to search for articles" << '\n'
+			<< "- 'document_json <ID>' to get the full contents of an article" << std::endl;
+		std::cout << std::endl;
+	}
+	else
+	{
+		if (!parseArgs(argc - 1, argv + 1))
+		{
+			std::cerr << "ERROR: Unable to parse command line arguments." << std::endl;
+			std::cout << std::endl;
+		}
+	}
+
 	try
 	{
 		InvertedFile_t IF;
 
-		/*
-		IFImportPart(IF, "InvertedFile.bin", std::vector<std::string>({ "hello", "Steve" }));
-		auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-		auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
-
-		return 0;
-		*/
-
-		std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
-		if (IFImport(IF, "InvertedFile.bin"))
+		if (arguments.index || (arguments.query.empty() && (arguments.documentID == 0)))
 		{
-			std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
-		}
-		else
-		{
-			std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
-			std::cout << std::endl;
-
 			std::cout << "Generating the InvertedFile..." << std::endl;
 			if (!makeInvertedFile(IF)) return 1;
 			std::cout << "Generated the InvertedFile successfully." << std::endl;
@@ -128,10 +179,57 @@ int main(int argc, char * argv[])
 				return 1;
 			}
 			std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
 
-		std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+		if (!arguments.query.empty())
+		{
+			if (!IFImportPart(IF, "InvertedFile.bin", arguments.query))
+			{
+				std::cout << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
+				std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
+				return 1;
+			}
+
+			auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+			auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+			
+			auto resultsShow = [&](const SearchResults_t& results, const char* name) {
+				std::cout << "Top 10 (" << name << "):" << std::endl;
+				int index = 0;
+				for (auto& result : results)
+				{
+					std::cout << (++index) << ". document " << result.docID << " (frequency: " << result.frequency << ")" << std::endl;
+				}
+				std::cout << std::endl;
+			};
+
+			resultsShow(resultsConjunction, "naive search conjunction");
+			resultsShow(resultsDisjunction, "naive search disjunction");
+		}
+		else if (arguments.documentID > 0)
+		{
+			std::cout << "ERROR: loading an article from an ID has not yet been implemented." << std::endl;
+
+			// ... // TODO
+			return 1;
+		}
+		else if (!arguments.index)
+		{
+			IF.clear();
+			std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
+			if (IFImport(IF, "InvertedFile.bin"))
+			{
+				std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
+			}
+			else
+			{
+				std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
+			}
+			std::cout << std::endl;
+
+			std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+		}
 
 		return 0;
 	}
