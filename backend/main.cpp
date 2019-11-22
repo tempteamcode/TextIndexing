@@ -13,7 +13,7 @@
 
 using json = nlohmann::json;
 
-#define RETURN_ON_FAILURE( ret ) { int res = ret; if (res) return res; }
+#define RETURN_ON_FAILURE( operation ) { bool res = operation; if (!res) return 1; }
 
 
 typedef unsigned_ints FileDocumentUID_t;
@@ -81,7 +81,7 @@ bool loadInputFiles(std::vector<std::string>& input_files)
 
 bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentUID_t ID, DocumentJSON_t& documentJSON)
 {
-	const std::string& input_file = input_files[ID.first];
+	const std::string& input_file = input_files[ID.first - 1];
 
 	unsigned int documentID = 0;
 
@@ -131,7 +131,7 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 				std::cerr << "ERROR: file not found / access denied" << std::endl; break;
 			case custom_exception::parsing_error:
 				std::cerr << "ERROR: invalid tag structure" << std::endl; break;
-			default:break;
+			default: break;
 			}
 		}
 	}
@@ -139,13 +139,13 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 	std::cout << std::endl;
 }
 
-struct {
+struct arguments_t {
 	bool index;
 	std::vector<std::string> query;
 	unsigned int documentID;
-} arguments;
+};
 
-bool parseArgs(int argc, char * argv[])
+bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 {
 	arguments.index = false;
 	arguments.query.clear();
@@ -179,70 +179,52 @@ bool parseArgs(int argc, char * argv[])
 
 
 
-
 // ======== Modes
 
 /**
-* Generate the inverted file if needed.
-* @return 0 if it worked, 1 if an error occured
+* Generates the inverted file.
+* @return true on success, false if an error occured
 */
-int invertedFileGeneration(const std::vector<std::string>& input_files) {
+bool modeBuildInvertedFile(const std::vector<std::string>& input_files)
+{
 	InvertedFile_t IF;
 
-	if (!arguments.index)
+	std::cout << "Generating the InvertedFile..." << std::endl;
+	makeInvertedFile(input_files, IF);
+	std::cout << "Generated the InvertedFile successfully." << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
+	if (!IFExport(IF, "InvertedFile.bin"))
 	{
-		std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
-		if (IFImport(IF, "InvertedFile.bin"))
-		{
-			std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
-		}
-		else
-		{
-			std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
-		}
-		std::cout << std::endl;
+		std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
+		return false;
 	}
+	std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
+	std::cout << std::endl;
 
-	if (IF.empty())
-	{
-		std::cout << "Generating the InvertedFile..." << std::endl;
-		makeInvertedFile(input_files, IF);
-		std::cout << "Generated the InvertedFile successfully." << std::endl;
-		std::cout << std::endl;
-
-		std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
-		if (!IFExport(IF, "InvertedFile.bin"))
-		{
-			std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
-			return 1;
-		}
-		std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
-		std::cout << std::endl;
-	}
-
-	return 0;
+	return true;
 }
 
 /**
-* Return the result of a query
-* @return 0 if it worked, 1 if an error occured
+* Outputs the result of a query.
+* @return true on success, false if an error occured
 */
-int searchQueryMode()
+bool modeQuerySearch(std::vector<std::string>& words)
 {
 	InvertedFile_t IF;
-	auto& words = arguments.query;
 
-	for (std::string& word : arguments.query)
+	for (std::string& word : words)
 	{
 		if (!stemming_stopword(word)) word.clear();
 	}
 	words.erase(std::remove_if(words.begin(), words.end(), [](const std::string& word) { return word.empty(); }), words.end());
 
-	if (!IFImportPart(IF, "InvertedFile.bin", arguments.query))
+	if (!IFImportPart(IF, "InvertedFile.bin", words))
 	{
 		std::cout << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
 		std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
-		return 1;
+		return false;
 	}
 
 	auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
@@ -261,18 +243,19 @@ int searchQueryMode()
 	resultsShow(resultsConjunction, "naive search conjunction");
 	resultsShow(resultsDisjunction, "naive search disjunction");
 
-	return 0;
+	return true;
 }
 
-
 /**
-* Return a specific document
+* Outputs a specific document.
+* @return true on success, false if an error occured
 */
-int documentQueryMode(const std::vector<std::string>& input_files, FileDocumentUID_t documentID) {
+bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocumentUID_t documentID)
+{
 	DocumentJSON_t documentJSON;
-	if (!loadDocumentJSON(input_files, FileDocumentUID_t(arguments.documentID), documentJSON))
+	if (!loadDocumentJSON(input_files, documentID, documentJSON))
 	{
-		std::cerr << "ERROR: Could not load the document with ID " << arguments.documentID << "." << std::endl;
+		std::cerr << "ERROR: Could not load the document with ID " << documentID << "." << std::endl;
 		return 1;
 	}
 
@@ -284,7 +267,12 @@ int documentQueryMode(const std::vector<std::string>& input_files, FileDocumentU
 	return 0;
 }
 
-int importInvertedFile( void ) {
+/**
+* Default action.
+* @return true on success, false if an error occured
+*/
+bool modeDefault()
+{
 	InvertedFile_t IF;
 
 	std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
@@ -292,14 +280,14 @@ int importInvertedFile( void ) {
 	{
 		std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
 		std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
-		return 1;
+		return false;
 	}
 	std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
 
 	std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
 	std::cout << std::endl;
 
-	return 0;
+	return true;
 }
 
 // ======== Where the magic happens!
@@ -315,6 +303,7 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
+	arguments_t arguments;
 	if (argc <= 1)
 	{
 		std::cout << "WARNING: Missing command line arguments." << std::endl;
@@ -327,7 +316,7 @@ int main(int argc, char * argv[])
 	}
 	else
 	{
-		if (!parseArgs(argc - 1, argv + 1))
+		if (!parseArgs(arguments, argc - 1, argv + 1))
 		{
 			std::cerr << "ERROR: Unable to parse command line arguments." << std::endl;
 			std::cout << std::endl;
@@ -336,22 +325,21 @@ int main(int argc, char * argv[])
 
 	try
 	{
-		if (arguments.index || (arguments.query.empty() && (arguments.documentID == 0)))
+		if (arguments.index)
 		{
-			RETURN_ON_FAILURE( invertedFileGeneration(input_files) );
+			RETURN_ON_FAILURE( modeBuildInvertedFile(input_files) );
 		}
-
-		if (!arguments.query.empty() )
+		else if (!arguments.query.empty())
 		{
-			RETURN_ON_FAILURE( searchQueryMode() );
+			RETURN_ON_FAILURE( modeQuerySearch(arguments.query) );
 		}
 		else if (arguments.documentID > 0)
 		{
-			RETURN_ON_FAILURE( documentQueryMode(input_files, arguments.documentID) );
+			RETURN_ON_FAILURE( modeQueryDocument(input_files, FileDocumentUID_t(arguments.documentID)) );
 		}
 		else if (!arguments.index)
 		{
-			RETURN_ON_FAILURE( importInvertedFile( ) );
+			RETURN_ON_FAILURE( modeDefault() );
 		}
 
 		return 0;

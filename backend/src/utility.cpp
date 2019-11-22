@@ -11,8 +11,8 @@ Date_t::operator std::string() const
 {
 	std::ostringstream formatted;
 	formatted << std::setfill('0') << std::setw(4) << year;
-	formatted << std::setfill('0') << std::setw(2) << int(month);
-	formatted << std::setfill('0') << std::setw(2) << day;
+	formatted << std::setfill('0') << std::setw(2) << static_cast<int>(month);
+	formatted << std::setfill('0') << std::setw(2) << static_cast<int>(day);
 	return formatted.str();
 }
 

@@ -1,7 +1,6 @@
 #include "DocumentParser.h"
 
 #include <iostream>
-#include <algorithm>
 
 #include "Tokenizer.h"
 #include "Stemmer.h"
@@ -237,27 +236,33 @@ void extractDocumentJSON(DocumentTree_t& document_tree, DocumentJSON_t& document
 		}
 		else if (tag.name == "HEADLINE")
 		{
-			std::swap(documentJSON.title, tag.data);
-			continue; // TODO: implement
-		}
-		else if (tag.name == "TEXT")
-		{
-			documentJSON.contents.push_back("");
-			std::swap((*documentJSON.contents.rbegin()), tag.data);
+			documentJSON.title = std::move(tag.data);
 
 			for (auto& subtag : tag.tags)
 			{
 				if (subtag.name == "P")
 				{
-					documentJSON.contents.push_back("");
-					std::swap((*documentJSON.contents.rbegin()), tag.data);
+					documentJSON.title = std::move(subtag.data);
+				}
+			}
+
+			continue; // TODO: implement
+		}
+		else if (tag.name == "TEXT")
+		{
+			documentJSON.contents.emplace_back(std::move(tag.data));
+
+			for (auto& subtag : tag.tags)
+			{
+				if (subtag.name == "P")
+				{
+					documentJSON.contents.emplace_back(std::move(subtag.data));
 				}
 			}
 		}
 		else if (tag.name == "P")
 		{
-			documentJSON.contents.push_back("");
-			std::swap((*documentJSON.contents.rbegin()), tag.data);
+			documentJSON.contents.emplace_back(std::move(tag.data));
 		}
 		else if (tag.name == "GRAPHIC")
 		{

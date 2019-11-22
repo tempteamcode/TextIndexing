@@ -397,8 +397,7 @@ void Stemmer::step5()
 	if (b[z->k] == 'e')
 	{
 		int a = z->m();
-		if (a > 1 || (a == 1 && !z->cvc(z->k - 1)) ) 
-			z->k--;
+		if (a > 1 || a == 1 && !z->cvc(z->k - 1)) z->k--;
 	}
 	if (b[z->k] == 'l' && z->doublec(z->k) && z->m() > 1) z->k--;
 }
