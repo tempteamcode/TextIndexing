@@ -1,12 +1,12 @@
 #include <fstream>
 #include <iostream>
 
-#include "files.h"
-#include "Tokenizer.h"
-#include "DocumentExtractor.h"
-#include "DocumentParser.h"
-#include "InvertedFile.h"
-#include "search.h"
+#include "src/files.h"
+#include "src/Tokenizer.h"
+#include "src/DocumentExtractor.h"
+#include "src/DocumentParser.h"
+#include "src/InvertedFile.h"
+#include "src/search.h"
 
 
 template <class callback_t>
@@ -83,6 +83,7 @@ bool makeInvertedFile(InvertedFile_t& IF)
 				std::cerr << "ERROR: file not found / access denied" << std::endl; break;
 			case custom_exception::parsing_error:
 				std::cerr << "ERROR: invalid tag structure" << std::endl; break;
+			default:break;
 			}
 		}
 	}
@@ -193,7 +194,7 @@ int main(int argc, char * argv[])
 
 			auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
 			auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
-			
+
 			auto resultsShow = [&](const SearchResults_t& results, const char* name) {
 				std::cout << "Top 10 (" << name << "):" << std::endl;
 				int index = 0;
