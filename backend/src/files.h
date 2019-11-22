@@ -120,7 +120,7 @@ template<typename T1, typename T2>
 inline void binSkip_vec(std::istream& is)
 {
 	unsigned int length; binRead<unsigned int>(is, length);
-	for (unsigned int = 0; i < length; i++)
+	for (unsigned int i = 0; i < length; i++)
 	{
 		binSkip<T1>(is);
 		binSkip<T2>(is);
@@ -154,7 +154,7 @@ template<typename TK, typename TV>
 inline void binSkip_map(std::istream& is)
 {
 	unsigned int length; binRead<unsigned int>(is, length);
-	for (unsigned int = 0; i < length; i++)
+	for (unsigned int i = 0; i < length; i++)
 	{
 		binSkip<TK>(is);
 		binSkip<TV>(is);
