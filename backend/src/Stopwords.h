@@ -1,11 +1,11 @@
 #pragma once
 
-#include <vector>
+#include <set>
 #include <string>
 
 // Source : https://gist.github.com/sebleier/554280
 
-static const std::vector<std::string> stopwords = {
+static const std::set<std::string> stopwords = {
 "i",
 "me",
 "my",
@@ -137,5 +137,5 @@ static const std::vector<std::string> stopwords = {
 
 inline bool isStopword(const std::string& word)
 {
-	return std::find(stopwords.cbegin(), stopwords.cend(), word) != stopwords.cend();
+	return (stopwords.find(word) != stopwords.end());
 }

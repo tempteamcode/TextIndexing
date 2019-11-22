@@ -4,6 +4,9 @@
 
 #include "Tokenizer.h"
 
+#include "Stemmer.h"
+#include "Stopwords.h"
+
 
 void print_tags(const DocumentTree_t& tag, std::string indent)
 {
@@ -37,6 +40,39 @@ void extractTokens(const std::string& data, TFC_t& dest)
 	extractTokens(data, [&] (const string_view& word_view) {
 		dest[std::string(word_view)]++;
 	});
+}
+
+template <class preprocessor_t>
+void extractTokens(const std::string& data, TFC_t& dest, preprocessor_t preprocessor)
+{
+	extractTokens(data, [&] (const string_view& word_view) {
+		std::string token(word_view);
+		if (preprocessor(token))
+			dest[token]++;
+	});
+}
+
+bool stemming_stopword(std::string& word)
+{
+	bool lettersonly = true;
+
+	for (char& c : word)
+	{
+		if (c >= 'A' && c <= 'Z')
+			c = c - 'A' + 'a';
+		else if (!(c >= 'a' && c <= 'z'))
+			lettersonly = false;
+	}
+
+	if (lettersonly)
+	{
+		stem(word);
+		return !isStopword(word);
+	}
+	else
+	{
+		return true;
+	}
 }
 
 bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document)
@@ -139,14 +175,14 @@ bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document)
 		}
 		else if (tag.name == "TEXT")
 		{
-			extractTokens(tag.data, document.TEXT);
+			extractTokens(tag.data, document.TEXT, stemming_stopword);
 			tag.data.clear();
 
 			for (auto& subtag : tag.tags)
 			{
 				if (subtag.name == "P")
 				{
-					extractTokens(subtag.data, document.TEXT);
+					extractTokens(subtag.data, document.TEXT, stemming_stopword);
 					subtag.data.clear();
 				}
 				else if (subtag.name == "TABLE")
@@ -157,7 +193,7 @@ bool extractDocumentData(DocumentTree_t& documents, DocumentData_t& document)
 		}
 		else if (tag.name == "P")
 		{
-			extractTokens(tag.data, document.TEXT);
+			extractTokens(tag.data, document.TEXT, stemming_stopword);
 			tag.data.clear();
 		}
 		else if (tag.name == "GRAPHIC")

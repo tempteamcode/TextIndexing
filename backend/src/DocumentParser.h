@@ -32,8 +32,6 @@ void print_tags(const DocumentTree_t& tag, std::string indent);
 
 std::vector<string_view> extractTokens(const std::string& data);
 
-void extractTokens(const std::string& data, TFC_t& dest);
-
 template<class callback_t>
 void extractTokens(const std::string& data, callback_t callback)
 {
