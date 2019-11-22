@@ -1,42 +1,38 @@
-// var http = require('http')
-//
-//
+
+let express                   = require("express")
+const path                    = require('path');
+const http                    = require('http');
+const bodyParser              = require('body-parser');
+// const api                     = require('./server/routes/api');
+let { exec, execSync }        = require("child_process")
+
+
 let port = 1337
-//
-// http.createServer(function(request, response) {
-//     response.writeHead(
-//       200,
-//       {
-//         'Content-type': 'text/plain'
-//       });
-//       response.write("Hello world!")
-//       response.end();
-//       console.log( "Node js running on port " + port );
-//
-// }).listen(port);
 
 
-let express = require("express")
-let { exec } = require("child_process")
 
 let app = express()
 
-const viewerRoot = "/../viewer/dist"
+const viewerRoot = "/viewer/"
 
-app.get("/", function(req, res) {
-  res.sendFile( viewerRoot + "/index.html" )
-});
+// app.get("/", function(req, res) {
+//   console.log(__dirname + viewerRoot + "index.html" )
+//   res.sendFile( __dirname + viewerRoot + "index.html" )
+// });
+
+app.use(express.static(path.join(__dirname, 'dist')));
+// app.use('/api', api);
 
 app.get("/status", function(req, res){
   res.send("ok")
 });
 
-function rebuild() {
-  exec(`cp ${viewerRoot} ./viewer`)
-}
-
-rebuild();
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist/index.html'));
+});
 
 app.listen(port, function(){
   `Server Text indexing (port ${port})`
 })
+
+console.log(`Server Text indexing (port ${port})`)
