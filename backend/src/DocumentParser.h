@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "DocumentExtractor.h"
+#include "Tokenizer.h"
 #include "utility.h"
 
 typedef std::unordered_map<std::string, unsigned int> TFC_t;

@@ -1,5 +1,6 @@
-#include "utility.h"
+#include <algorithm>
 
+#include "utility.h"
 
 const std::vector<std::string> names_months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
 const std::vector<std::string> names_weekdays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};

@@ -27,9 +27,9 @@ struct Token_t {
 		PERCENTAGE,
 	};
 	
-	TokenType_t type;
 	std::string word;
 	double value;
+	TokenType_t type;
 	
 	Token_t(const std::string& word, TokenType_t type)
 		: word(word), type(type)
@@ -56,7 +56,7 @@ public:
 	 */
 	Token_t extractToken(std::istream & is);
 
-	bool Tokenizer::extract(const std::string& data, const string_view& range, string_view& result);
+	bool extract(const std::string& data, const string_view& range, string_view& result);
 
 	bool isNextTokenASeparator(std::istream& is, std::string& separator);
 

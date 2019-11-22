@@ -11,7 +11,7 @@ struct DocumentTree_t
 	std::string data;
 
 	void simplify();
-	bool DocumentTree_t::empty() const;
+	bool empty() const;
 	void clear();
 
     DocumentTree_t() = default;
