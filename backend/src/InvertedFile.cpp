@@ -15,7 +15,7 @@ TFID_t TFC_to_TFID(const TFC_t& src)
 
 	for (auto it = src.begin(); it != src.cend(); ++it)
 	{
-		result[it->first] = ((float) it->second) / total;
+		result[it->first] = Frequency_t(it->second, total);
 	}
 
 	return result;

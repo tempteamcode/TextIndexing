@@ -2,13 +2,24 @@
 
 #include <map>
 #include <vector>
+//#include <iostream>
 
 #include "DocumentParser.h"
 
 #include "files.h"
 
 typedef unsigned int DocumentUID_t;
-typedef float Frequency_t;
+
+typedef unsigned_ints Frequency_t;
+
+inline float freqTF(const Frequency_t& freq)
+{
+	return freq.second <= 0 ? 0.0f : static_cast<float>(freq.first) / static_cast<float>(freq.second);
+}
+inline float freqTFIDF(const Frequency_t& freq, unsigned int documents_in, unsigned int documents_total)
+{
+	return documents_in <= 0 ? freqTF(freq) : freqTF(freq) * log(documents_total / documents_in);
+}
 
 typedef std::unordered_map<std::string, Frequency_t> TFID_t;
 

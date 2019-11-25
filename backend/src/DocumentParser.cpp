@@ -7,14 +7,13 @@
 #include "Stopwords.h"
 
 
-void print_tags(const DocumentTree_t& tag, std::string indent)
+void print_tags(const DocumentTree_t& tag, const std::string& indent)
 {
-	indent += "    ";
 	std::cout << indent << '<' << tag.name << '>' << std::endl;
 
 	for (auto& tag : tag.tags)
 	{
-		print_tags(tag, indent);
+		print_tags(tag, indent + "    ");
 	}
 
 	if (!tag.data.empty())
@@ -202,7 +201,7 @@ void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document
 		{
 			std::cerr << "/!\\ unused '" << tag.name << "' data:" << std::endl;
 
-			print_tags(tag, "");
+			print_tags(tag, "    ");
 		}
 	}
 }

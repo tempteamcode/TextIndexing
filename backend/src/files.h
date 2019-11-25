@@ -13,7 +13,7 @@ struct unsigned_ints
 
 	inline unsigned_ints() = default;
 
-	inline unsigned_ints(uint16_t first, uint16_t second)
+	inline unsigned_ints(unsigned int first, unsigned int second)
 		: first(first), second(second)
 	{}
 
@@ -21,10 +21,19 @@ struct unsigned_ints
 		: first(static_cast<uint16_t>(values >> 16)), second (static_cast<uint16_t>(values))
 	{}
 
+	/*inline unsigned_ints(uint64_t values)
+		: first(static_cast<uint32_t>(values >> 32)), second(static_cast<uint32_t>(values))
+	{}*/
+
 	inline operator uint32_t()
 	{
 		return static_cast<uint32_t>(first) << 16 | static_cast<uint32_t>(second);
 	}
+
+	/*inline operator uint64_t()
+	{
+		return static_cast<uint64_t>(first) << 32 | static_cast<uint64_t>(second);
+	}*/
 };
 
 template<typename T>

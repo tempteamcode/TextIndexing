@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <algorithm>
 
 #include "DocumentExtractor.h"
 #include "Tokenizer.h"
@@ -39,7 +40,7 @@ struct DocumentJSON_t
 
 bool stemming_stopword(std::string& word);
  
-void print_tags(const DocumentTree_t& tag, std::string indent);
+void print_tags(const DocumentTree_t& tag, const std::string& indent);
 
 std::vector<string_view> extractTokens(const std::string& data);
 

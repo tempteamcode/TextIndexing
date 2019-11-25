@@ -85,10 +85,11 @@ template
 void binRead<unsigned_ints>(std::istream& is, unsigned_ints& value);
 template
 void binSkip<unsigned_ints>(std::istream& is);
-
+/*
 template
 void binWrite<float>(std::ostream& os, const float& value);
 template
 void binRead<float>(std::istream& is, float& value);
 template
 void binSkip<float>(std::istream& is);
+*/

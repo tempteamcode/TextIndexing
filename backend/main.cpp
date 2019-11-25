@@ -145,7 +145,7 @@ bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 	arguments.query.clear();
 	arguments.documentID = 0;
 
-	if (argc == 0) return false;
+	if (argc <= 0) return false;
 
 	if (streq(argv[0], "index"))
 	{
@@ -229,7 +229,7 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		int index = 0;
 		for (auto& result : results)
 		{
-			std::cout << (++index) << ". document " << result.docID << " (frequency: " << result.frequency << ")" << std::endl;
+			std::cout << (++index) << ". document " << result.docID << " (frequency: " << freqTF(result.frequency) << ")" << std::endl;
 		}
 		std::cout << std::endl;
 	};
@@ -250,12 +250,12 @@ bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocument
 	if (!loadDocumentJSON(input_files, documentID, documentJSON))
 	{
 		std::cerr << "ERROR: Could not load the document with ID " << documentID << "." << std::endl;
-		return 1;
+		return false;
 	}
 
 	std::cout << documentJSON << std::endl;
 
-	return 0;
+	return true;
 }
 
 /**
@@ -295,19 +295,19 @@ int main(int argc, char * argv[])
 	}
 
 	arguments_t arguments;
-	if (argc <= 1)
+	if (!parseArgs(arguments, argc - 1, argv + 1))
 	{
-		std::cout << "WARNING: Missing command line arguments." << std::endl;
-		std::cout << std::endl;
-		std::cout << "Available arguments are:" << '\n'
-			<< "- 'index' to (re)build the InvertedFile" << '\n'
-			<< "- 'query <word> <word> ...' to search for articles" << '\n'
-			<< "- 'document_json <ID>' to get the full contents of an article" << std::endl;
-		std::cout << std::endl;
-	}
-	else
-	{
-		if (!parseArgs(arguments, argc - 1, argv + 1))
+		if (argc <= 1)
+		{
+			std::cout << "WARNING: Missing command line arguments." << std::endl;
+			std::cout << std::endl;
+			std::cout << "Available arguments are:" << '\n'
+				<< "- 'index' to (re)build the InvertedFile" << '\n'
+				<< "- 'query <word> <word> ...' to search for articles" << '\n'
+				<< "- 'document_json <ID>' to get the full contents of an article" << std::endl;
+			std::cout << std::endl;
+		}
+		else
 		{
 			std::cerr << "ERROR: Unable to parse command line arguments." << std::endl;
 			std::cout << std::endl;
