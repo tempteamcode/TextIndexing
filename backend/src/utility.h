@@ -81,6 +81,8 @@ inline bool streq(const char* str1, const char* str2)
 
 bool operator ==(const string_view& str_view, const char* text);
 
+string_view strstrip(const std::string& text);
+
 inline void toLowerCase(std::string& text)
 {
 	for (unsigned int i = 0, len = text.length(); i < len; i++)

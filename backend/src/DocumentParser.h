@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 #include "DocumentExtractor.h"
 #include "Tokenizer.h"
@@ -73,3 +74,5 @@ void consumeDocuments(DocumentTree_t& documents, callback_t callback)
 		}
 	}
 }
+
+std::ostream& operator <<(std::ostream &os, const DocumentJSON_t& document);

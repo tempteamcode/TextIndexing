@@ -28,6 +28,27 @@ bool operator ==(const string_view& str_view, const char* text)
 	}
 }
 
+string_view strstrip(const std::string& text)
+{
+	bool empty = true;
+	string_view result;
+	result.begin = text.end();
+	result.end = result.begin;
+
+	for (auto it = text.cbegin(); it != text.cend(); ++it)
+	{
+		char c = (*it);
+		if (!(c == ' ' || c == '\t' || c == '\r' || c == '\n'))
+		{
+			if (empty) result.begin = it;
+			result.end = it + 1;
+			empty = false;
+		}
+	}
+
+	return result;
+}
+
 bool tryParseInt(const string_view& chars, unsigned int& value)
 {
 	value = 0;

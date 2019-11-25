@@ -9,12 +9,6 @@
 #include "src/search.h"
 #include "src/utility.h"
 
-#include "includes/json.hpp"
-
-using json = nlohmann::json;
-
-#define RETURN_ON_FAILURE( operation ) { bool res = operation; if (!res) return 1; }
-
 
 typedef unsigned_ints FileDocumentUID_t;
 
@@ -259,10 +253,7 @@ bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocument
 		return 1;
 	}
 
-	std::cout << documentJSON.title << (documentJSON.date.empty() ? "" : std::string(documentJSON.date)) << std::endl;
-	std::cout << std::endl;
-
-	std::cout << stringJoin(documentJSON.contents, std::string("\n\n")) << std::endl;
+	std::cout << documentJSON << std::endl;
 
 	return 0;
 }
@@ -325,24 +316,26 @@ int main(int argc, char * argv[])
 
 	try
 	{
+		bool success;
+
 		if (arguments.index)
 		{
-			RETURN_ON_FAILURE( modeBuildInvertedFile(input_files) );
+			success = modeBuildInvertedFile(input_files);
 		}
 		else if (!arguments.query.empty())
 		{
-			RETURN_ON_FAILURE( modeQuerySearch(arguments.query) );
+			success = modeQuerySearch(arguments.query);
 		}
 		else if (arguments.documentID > 0)
 		{
-			RETURN_ON_FAILURE( modeQueryDocument(input_files, FileDocumentUID_t(arguments.documentID)) );
+			success = modeQueryDocument(input_files, FileDocumentUID_t(arguments.documentID));
 		}
 		else if (!arguments.index)
 		{
-			RETURN_ON_FAILURE( modeDefault() );
+			success = modeDefault();
 		}
 
-		return 0;
+		return success ? 0 : 1;
 	}
 
 	catch (...)

@@ -278,3 +278,46 @@ void extractDocumentJSON(DocumentTree_t& document_tree, DocumentJSON_t& document
 		}
 	}
 }
+
+std::ostream& operator <<(std::ostream& os, const string_view& text) {
+	for (auto it = text.begin; it != text.end; ++it)
+	{
+		char c = *(it);
+		if (!(c == '\t' || c == '\r' || c == '\n'))
+		{
+			if (c == '\\' || c == '"') os << '\\';
+			os << c;
+		}
+		else
+		{
+			if (c == '\t') os << "\\t";
+			if (c == '\r') os << "\\r";
+			if (c == '\n') os << "\\n";
+		}
+	}
+	return os;
+};
+
+std::ostream& operator <<(std::ostream &os, const DocumentJSON_t& document)
+{
+	os
+		<< "{\n"
+		<< "  \"date\": " << std::string(document.date) << ",\n"
+		<< "  \"title\": \"" << strstrip(document.title) << "\",\n"
+		<< "  \"contents\": [";
+
+	bool prev = false; for (const std::string& paragraph : document.contents)
+	{
+		string_view str_stripped = strstrip(paragraph);
+		if (str_stripped.begin == str_stripped.end) continue;
+		if (prev) os << ",";
+		os << "\n    \"" << str_stripped << "\"";
+		prev = true;
+	}
+
+	return os
+		<< "\n"
+		<< "  ]\n"
+		<< "}\n"
+		<< std::flush;
+}
