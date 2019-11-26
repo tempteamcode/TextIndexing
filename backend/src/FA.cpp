@@ -107,12 +107,10 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 	vector<int> v;
 	C.clear();
 	if(k>tab.at(0).size()){
-		cout<<"k>size"<<endl;
 		for (TF tf1:tab.at(0)){
 			score=scoreTotalForDoc(tf1.d,tab);
 			C.push_back({tf1.d,score});
 		}
-		cout<<"end"<<endl;
 	}
 	else{
 		TF tf;
@@ -155,7 +153,6 @@ void FA::step2(vector<vector<TF>>& tab){
 void FA::step3(int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
-	cout<<"begin"<<endl;
 	for(int i=0;i<k;i++){
 		if(i<C.size()){
 			result.push_back(C.at(i));
