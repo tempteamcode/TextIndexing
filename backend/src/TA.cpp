@@ -78,7 +78,7 @@ void TA::sortedAccess(int row,vector<vector<TF>> &tab){
 	(d) Stop, when the scores of the top-k are greater or equal to the threshold.
 
  * */
-void TA::step1(int k,vector<vector<TF>> &tab){
+/*void TA::step1(int k,vector<vector<TF>> &tab){
 	int row=0;
 	//vector<vector<int>> qt(tab.size());
 	vector<int> v;
@@ -93,7 +93,35 @@ void TA::step1(int k,vector<vector<TF>> &tab){
 		removeC(k);
 		row++;
 	}
+}*/
+
+void TA::step1(int k,vector<vector<TF>> &tab){
+	int row=0;
+	vector<vector<int>> qt(tab.size());
+	vector<int> v;
+	double score;
+	if (k>tab.at(0).size()){
+		cout<<"k>size"<<endl;
+		for (TF tf1:tab.at(0)){
+			score=scoreTotal(tf1,tab);
+			C.push_back({tf1.d,score});
+		}
+		cout<<"end"<<endl;
+	}
+	else{
+		while(kDocT(k)){
+			TF pl;
+			sortedAccess(row,tab);
+			for (vector<TF> qt: tab){
+				pl=qt.at(row);
+				InsertC(pl,tab);
+			}
+			removeC(k);
+			row++;
+		}
+	}
 }
+
 /*
  * 2. Return the top-k seen so far
  * */
