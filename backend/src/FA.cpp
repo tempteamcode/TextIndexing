@@ -155,8 +155,11 @@ void FA::step2(vector<vector<TF>>& tab){
 void FA::step3(int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
+	cout<<"begin"<<endl;
 	for(int i=0;i<k;i++){
-		result.push_back(C.at(i));
+		if(i<C.size()){
+			result.push_back(C.at(i));
+		}
 	}
 	C.clear();
 	C=result;
