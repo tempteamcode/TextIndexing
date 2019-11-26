@@ -1,6 +1,6 @@
 #include "FA.h"
 using namespace std;
-bool sortinrev(const FA::TS &a,const FA::TS &b){
+inline bool sortinrev(const FA::TS &a,const FA::TS &b){
        return ((a.score > b.score) ||(a.score == b.score && a.d<b.d));
 }
 
@@ -32,11 +32,11 @@ bool FA::SeenFirstTime(TF tf){
 	}
 }
 double FA::scoreTotalForDoc(int docID,vector<vector<TF>>& tab){
-	double sum;
+	double sum = 0.0;
 	for ( const auto &row : tab ){
 	   for ( const auto &s : row ){
 		   if(s.d==docID){
-			   sum=sum+s.frequency;
+			   sum += s.frequency;
 		   }
 	   }
 	}
@@ -82,7 +82,8 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 	TF tf;
 	while((int)C.size()!=k){
 		for (int j=0;j<(int)tab.size();j++){
-		   for (int i=increment-1;i<increment;i++){
+			int i = increment; //for (int i=increment-1;i<increment;i++){
+				if (i >= tab.at(j).size()) return;
 			  tf=tab.at(j).at(i);
 			  qt.at(j).push_back(tf.d);
 			  if(hasSeenForAll(tf,qt)){
@@ -93,7 +94,7 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 			  else if(SeenFirstTime(tf)){
 				  M.push_back(tf.d);
 			  }
-		   }
+		   //}
 		   if((int)C.size()==k)break;
 		}
 		increment++;

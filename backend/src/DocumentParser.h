@@ -53,7 +53,7 @@ void extractTokens(const std::string& data, callback_t callback)
 	for (;;)
 	{
 		string_view part;
-		if (!tokenizer.extract(data, range, part)) break;
+		if (!tokenizer.extract(range, part)) break;
 
 		callback(part);
 		range.begin = part.end;

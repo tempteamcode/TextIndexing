@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -7,16 +9,12 @@
 #include <numeric>
 using namespace std;
 
+#include "FA.h"
+
 class TA{
-	public:
-	struct TF{
-			int d;
-			double frequency;
-		};
-		struct TS{
-			int d;
-			double score;
-		};
+public:
+	using TF = ::TF;
+	using TS = ::TS;
 	vector<TS> C;
 	vector<TF> M;
 	double t;

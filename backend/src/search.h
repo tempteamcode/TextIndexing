@@ -57,7 +57,7 @@ inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0
 	{
 		searchresults.push_back({ result.first, result.second });
 	}
-	sort(searchresults.begin(), searchresults.end(), [](DocFreq_t& lhs, DocFreq_t& rhs) { return lhs.frequency >= rhs.frequency; });
+	sort(searchresults.begin(), searchresults.end(), [](DocFreq_t& lhs, DocFreq_t& rhs) { return freqTF(lhs.frequency) >= freqTF(rhs.frequency); });
 	if (maxcount != 0 && searchresults.size() > maxcount) searchresults.resize(maxcount);
 	return searchresults;
 }

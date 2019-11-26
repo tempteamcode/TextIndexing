@@ -1,6 +1,6 @@
 #include "TA.h"
 using namespace std;
-bool sortinrev(const TA::TS &a,const TA::TS &b){
+inline bool sortinrev(const TA::TS &a,const TA::TS &b){
 	return ((a.score > b.score) ||(a.score == b.score && a.d<b.d));
 }
 void TA::removeC(int k) {
@@ -10,11 +10,11 @@ void TA::removeC(int k) {
 	}
 }
 double TA::scoreTotal(TF pl,vector<vector<TF>> &tab){
-	double sum;
+	double sum = 0.0;
 	for ( const auto &row : tab ){
 	   for ( const auto &s : row ){
 		   if(s.d==pl.d){
-			   sum=sum+s.frequency;
+			   sum += s.frequency;
 		   }
 	   }
 	}
@@ -80,13 +80,13 @@ void TA::sortedAccess(int row,vector<vector<TF>> &tab){
  * */
 void TA::step1(int k,vector<vector<TF>> &tab){
 	int row=0;
-	vector<vector<int>> qt(tab.size());
+	//vector<vector<int>> qt(tab.size());
 	vector<int> v;
 	TF pl;
 	vector<double> vTau(tab.size());
 	while(kDocT(k)){
 		sortedAccess(row,tab);
-		for (vector<TF> qt: tab){
+		for (vector<TF>& qt: tab){
 			pl=qt.at(row);
 			InsertC(pl,tab);
 		}
