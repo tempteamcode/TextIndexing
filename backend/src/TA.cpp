@@ -101,8 +101,12 @@ void TA::step2(int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
 	for(int i=0;i<k;i++){
-		result.push_back(C.at(i));
+		if(i<C.size()){
+			result.push_back(C.at(i));
+		}
 	}
+	C.clear();
+	C=result;
 }
 
 vector<TA::TS> TA::TAlgo(int k,vector<vector<TF>> &tab){
