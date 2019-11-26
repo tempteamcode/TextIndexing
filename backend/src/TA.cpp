@@ -101,12 +101,10 @@ void TA::step1(int k,vector<vector<TF>> &tab){
 	vector<int> v;
 	double score;
 	if (k>tab.at(0).size()){
-		cout<<"k>size"<<endl;
 		for (TF tf1:tab.at(0)){
 			score=scoreTotal(tf1,tab);
 			C.push_back({tf1.d,score});
 		}
-		cout<<"end"<<endl;
 	}
 	else{
 		while(kDocT(k)){
