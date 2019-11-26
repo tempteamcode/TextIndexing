@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from "@angular/forms"
+import { HttpClientModule } from '@angular/common/http';
 
 
 import { AppComponent } from './app.component';
@@ -10,6 +11,8 @@ import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.com
 
 import { RouterModule, Routes } from '@angular/router';
 import { ResearchComponent } from './pages/research/research.component';
+
+import { IfImporterService } from "./services/ifimporter.service";
 
 const appRoutes = [
   { path: 'research', component: ResearchComponent },
@@ -31,12 +34,15 @@ const appRoutes = [
   imports: [
     BrowserModule,
     FormsModule,
+    HttpClientModule,
     RouterModule.forRoot(
       appRoutes,
       { enableTracing: false }
     )
   ],
-  providers: [],
+  providers: [
+    IfImporterService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -12,6 +12,12 @@
 
 typedef unsigned_ints FileDocumentUID_t;
 
+
+std::string ressourcesRootFolder 	= "./ressources/";
+std::string inputsFilePath				= ressourcesRootFolder + "inputs.txt";
+
+
+
 template <class callback_t>
 void file_tagsdata_process(const std::string& path, callback_t callback)
 {
@@ -57,7 +63,7 @@ void file_documents_print(const std::string& path)
 
 bool loadInputFiles(std::vector<std::string>& input_files)
 {
-	std::ifstream inputs("inputs.txt");
+	std::ifstream inputs( inputsFilePath );
 	if (!inputs) return false;
 
 	input_files.clear();
@@ -67,7 +73,7 @@ bool loadInputFiles(std::vector<std::string>& input_files)
 	{
 		if (path.empty()) continue;
 
-		input_files.push_back(path);
+		input_files.push_back( ressourcesRootFolder + path );
 	}
 
 	return true;
@@ -133,17 +139,27 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 	std::cout << std::endl;
 }
 
+
+// ==== Program input parsing
+
 struct arguments_t {
-	bool index;
+	bool index = false;
 	std::vector<std::string> query;
-	unsigned int documentID;
+	unsigned int documentID = 0;
+
+	arguments_t()
+	: index(false), query(), documentID(0) {}
+
+	void clear() {
+		index = false;
+		query.clear();
+		documentID = 0;
+	}
 };
 
 bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 {
-	arguments.index = false;
-	arguments.query.clear();
-	arguments.documentID = 0;
+	arguments.clear();
 
 	if (argc <= 0) return false;
 
@@ -221,8 +237,8 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		return false;
 	}
 
-	auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-	auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+	// auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	// auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
 
 	auto resultsShow = [&](const SearchResults_t& results, const char* name) {
 		std::cout << "Top 10 (" << name << "):" << std::endl;
@@ -234,8 +250,8 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		std::cout << std::endl;
 	};
 
-	resultsShow(resultsConjunction, "naive search conjunction");
-	resultsShow(resultsDisjunction, "naive search disjunction");
+	// resultsShow(resultsConjunction, "naive search conjunction");
+	// resultsShow(resultsDisjunction, "naive search disjunction");
 
 	return true;
 }
@@ -281,8 +297,9 @@ bool modeDefault()
 	return true;
 }
 
+// =================================
 // ======== Where the magic happens!
-
+// =================================
 
 
 int main(int argc, char * argv[])
@@ -290,7 +307,7 @@ int main(int argc, char * argv[])
 	std::vector<std::string> input_files;
 	if (!loadInputFiles(input_files))
 	{
-		std::cerr << "FATAL ERROR: Unable to load 'inputs.txt' containing the list of input files." << std::endl;
+		std::cerr << "FATAL ERROR: Unable to load '" << inputsFilePath << "' containing the list of input files." << std::endl;
 		return 1;
 	}
 
@@ -316,7 +333,7 @@ int main(int argc, char * argv[])
 
 	try
 	{
-		bool success;
+		bool success = true;
 
 		if (arguments.index)
 		{

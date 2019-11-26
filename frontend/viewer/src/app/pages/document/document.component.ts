@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { IfImporterService } from "../../services/ifimporter.service"
 
 @Component({
   selector: 'app-document',
@@ -7,9 +8,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DocumentComponent implements OnInit {
 
-  constructor() { }
+  constructor( public ifPrvd: IfImporterService ) { }
 
   ngOnInit() {
+    console.log("Hello")
+    this.ifPrvd.getDocument("4259932")
+      .subscribe(
+      (res) => { console.log("Yes",res) },
+      (err) => { console.error("No",err) }
+    )
   }
 
 }

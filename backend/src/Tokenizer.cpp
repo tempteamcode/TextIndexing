@@ -10,11 +10,11 @@ Tokenizer::Tokenizer() {
 
 void Tokenizer::initializeLUTs() {
 	for (char c = '0'; c <= '9'; c++)
-		isCharValidText[c] = true;
+		isCharValidText[(int)c] = true;
 	for (char c = 'a'; c <= 'z'; c++)
-		isCharValidText[c] = true;
+		isCharValidText[(int)c] = true;
 	for (char c = 'A'; c <= 'Z'; c++)
-		isCharValidText[c] = true;
+		isCharValidText[(int)c] = true;
 
 	// for (char c : {"-", ":", "?", "!", "(", ")", "[", "]", "\"", "'", ":", " ", "\n", "\t"})
 	//	isCharValidToken[c] = true;
@@ -70,7 +70,7 @@ Token_t Tokenizer::extractToken(std::istream & is)
 		for (char c; (c = is.peek()) != EOF; tokenSs << c)
 		{
 			std::string separator;
-			if (!isCharValidText[c] && isNextTokenASeparator(is, separator))
+			if (!isCharValidText[(int)c] && isNextTokenASeparator(is, separator))
 			{
 				is.ignore(separator.length());
 				return Token_t(separator, Token_t::SEPARATOR);
@@ -137,8 +137,8 @@ bool Tokenizer::extract(const std::string& data, const string_view& range, strin
 	for (;;)
 	{
 		if (pos == range.end) return false; // no token
-		if (isCharValidText[*pos]) break;
-		if (isCharValidToken[*pos])
+		if (isCharValidText[(int)(*pos)]) break;
+		if (isCharValidToken[(int)(*pos)])
 		{
 			result.begin = pos;
 			result.end = pos + 1;
@@ -153,7 +153,7 @@ bool Tokenizer::extract(const std::string& data, const string_view& range, strin
 	{
 		++pos;
 		if (pos == range.end) break;
-		if (!isCharValidText[*pos]) break;
+		if (!isCharValidText[(int)(*pos)]) break;
 	}
 	result.end = pos;
 

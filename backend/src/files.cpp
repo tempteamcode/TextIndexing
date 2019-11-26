@@ -24,7 +24,7 @@ void binSkip<unsigned int>(std::istream& is)
 }
 
 template<typename T>
-void binWrite<T>(std::ostream& os, const T& value)
+void binWrite( std::ostream& os, const T& value )
 {
 	char bits[sizeof(T)];
 	const char* ptr = reinterpret_cast<const char*>(&value);
@@ -35,7 +35,7 @@ void binWrite<T>(std::ostream& os, const T& value)
 	os.write(&bits[0], sizeof(T));
 }
 template<typename T>
-void binRead<T>(std::istream& is, T& value)
+void binRead( std::istream& is, T& value )
 {
 	char bits[sizeof(T)];
 	is.read(&bits[0], sizeof(T));
@@ -46,7 +46,7 @@ void binRead<T>(std::istream& is, T& value)
 	}
 }
 template<typename T>
-void binSkip<T>(std::istream& is)
+void binSkip( std::istream& is )
 {
 	is.ignore(sizeof(T));
 }

@@ -23,6 +23,23 @@ const viewerRoot = "/viewer/"
 app.use(express.static(path.join(__dirname, 'dist')));
 // app.use('/api', api);
 
+app.get("/api/document/4259932", function( req, res ) {
+  console.log("Call document api")
+  exec("./build/TextIndexer", (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    data = stdout;
+    console.log(`stdout: ${stdout}`);
+  });
+  exec('./build/TextIndexer document_json 4259932').stdout.on('data', (data) => {
+    console.log("iogfeoagfeaygfeaogy")
+    console.log(`stdout: ${data}`);
+    res.send( stdout )
+  });
+})
+
 app.get("/status", function(req, res){
   res.send("ok")
 });

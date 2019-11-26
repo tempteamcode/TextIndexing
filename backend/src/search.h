@@ -31,8 +31,8 @@ val_t val_zero(val_t)
 }
 
 
-auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) { return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>); };
-auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) { return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>); };
+// auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) { return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>); };
+// auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) { return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>); };
 
 
 typedef std::vector<DocFreq_t> SearchResults_t;

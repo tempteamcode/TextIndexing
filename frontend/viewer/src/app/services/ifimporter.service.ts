@@ -1,8 +1,17 @@
 import { Injectable } from '@angular/core';
 
-@Injectable()
-export class IfimporterService {
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-  constructor() { }
+@Injectable()
+export class IfImporterService {
+
+  constructor( private http: HttpClient ) { }
+
+  getDocument( documentId: string = "" ) {
+
+    let options: HttpHeaders = new HttpHeaders({ contentType: "text/plain" } )
+    return this.http.get( "/api/document/" + documentId, { headers: options } )
+
+  }
 
 }

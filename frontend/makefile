@@ -10,10 +10,14 @@ install-npm-packages:
 move-viewer:
 	cd viewer && cp -p -R dist ../server/dist
 
-build:
+build: clean
 	cd viewer && ng build && cp -p -R dist ../server/dist
 
 .PHONY: build
+
+clean:
+	-rm -rf server/dist
+.PHONY: clean
 
 run:
 	cd server && node server.js

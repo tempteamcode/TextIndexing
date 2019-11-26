@@ -1,6 +1,12 @@
+/*
+* Test de compilation
+*/
+
 #include "FA.h"
 #include "TA.h"
-#include<time.h>
+#include <time.h>
+
+
 using namespace std;
 
 bool dsc(const FA::TF &a,const FA::TF &b){
