@@ -27,7 +27,7 @@ public:
 	void removeDoc(TF tf);
 	bool hasSeenForAll(TF tf,vector<vector<int>> &qt);
 	bool SeenFirstTime(TF tf);
-	double scoreTotalForDoc(int docID,vector<vector<TF>> &tab);
+	double calculScore(int docID,vector<vector<TF>> &tab);
 	void display_vector(const vector<int> &v);
 	void displayC();
 	void displayTab(vector<vector<TF>> &tab);
