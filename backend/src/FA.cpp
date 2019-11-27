@@ -159,8 +159,10 @@ void FA::step3(int k){
 	C=result;
 }
 
-void FA::FAlgo(int k,vector<vector<TF>>& tab){
+vector<FA::TS> FA::FAlgo(int k,vector<vector<TF>>& tab){
 	step1(k,tab);
 	step2(tab);
 	step3(k);
+	//return result;
+	return C;
 }
