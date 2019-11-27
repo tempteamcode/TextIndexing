@@ -29,5 +29,5 @@ public:
 	void displayTab(vector<vector<TF>> &tab);
 	void step1(int k,vector<vector<TF>> &tab);
 	void step2(int k);
-	void TAlgo(int k,vector<vector<TF>> &tab);
+	vector<TA::TS> TAlgo(int k,vector<vector<TF>> &tab);
 };
