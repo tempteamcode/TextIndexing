@@ -19,7 +19,7 @@ public:
 	vector<TF> M;
 	double t;
 	vector<TS> result;
-	double scoreTotal(TF pl,vector<vector<TF>> &tab);
+	double calculScore(TF pl,vector<vector<TF>> &tab);
 	void InsertC(TF pl,vector<vector<TF>> &tab);
 	void removeC(int k);
 	void sortedAccess(int row,vector<vector<TF>> &tab);
@@ -29,5 +29,5 @@ public:
 	void displayTab(vector<vector<TF>> &tab);
 	void step1(int k,vector<vector<TF>> &tab);
 	void step2(int k);
-	vector<TS> TAlgo(int k,vector<vector<TF>> &tab);
+	void TAlgo(int k,vector<vector<TF>> &tab);
 };
