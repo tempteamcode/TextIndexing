@@ -112,7 +112,9 @@ void TA::step2(int k){
 	C=result;
 }
 
-void TA::TAlgo(int k,vector<vector<TF>> &tab){
+vector<TA::TS> TA::TAlgo(int k,vector<vector<TF>> &tab){
 	step1(k,tab);
 	step2(k);
+	//return result;
+	return C;
 }
