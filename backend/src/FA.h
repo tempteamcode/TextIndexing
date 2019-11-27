@@ -34,5 +34,5 @@ public:
 	void step1(int k,vector<vector<TF>> &tab);
 	void step2(vector<vector<TF>> &tab);
 	void step3(int k);
-	void FAlgo(int k,vector<vector<TF>> &tab);
+	vector<FA::TS> FAlgo(int k,vector<vector<TF>> &tab);
 };
