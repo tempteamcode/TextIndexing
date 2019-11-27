@@ -9,7 +9,7 @@
 #include "src/search.h"
 #include "src/utility.h"
 #include "src/TA.h"
-#include "FA.h"
+#include "src/FA.h"
 
 typedef unsigned_ints FileDocumentUID_t;
 
