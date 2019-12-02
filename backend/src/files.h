@@ -1,3 +1,15 @@
+/**
+ * @file files.h
+ * @author Quentin Guye, Nathan Mesnard, Paul-Emmanuel Sotir, Tianjian Ye
+ * @brief Utility functions to read/write from/to files and defaines unsigned_ints structure.
+ * @version 0.1
+ * @date 2019-12-02
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ * This header file defines the unsigned_ints, and various template function which makes easier to read and write files using std:map-s or std::vector-s of std::pair-s.
+ * unsigned_ints stores two uint16_t can be constructed/casted from/to a uint32_t value, interpreting uint32_t's 16 first bits as the first value and the remaining bits as the second value.
+ */
 #pragma once
 
 #include <cstdint>
@@ -6,6 +18,20 @@
 #include <vector>
 #include <map>
 
+/**
+ * @struct unsigned_ints
+ * @todo: add brief description and replace this struct with a simpler appproach using bitshifts; e.g: (same memory usage, potentially less copies, cleanner code)
+ * 	struct unsigned_ints {
+ * 		union {
+ * 			struct {
+ *				uint32_t first : 16;
+ *				uint32_t second : 16;
+ *			};
+ *			uint32_t values;
+ * 		};
+ *  };
+ *  Or make unsigned_ints actually be a std::pair<uint16_t> (adding ctr overload for uint32_t input + operator uint32_t() cast operator)
+ */
 struct unsigned_ints
 {
 	uint16_t first;
@@ -17,11 +43,19 @@ struct unsigned_ints
 		: first(first), second(second)
 	{}
 
+	/**
+	 * @brief Construct a new unsigned ints object from a uint32_t interpreted as two uint16_t concatenated
+	 */
 	inline unsigned_ints(uint32_t values)
 		: first(static_cast<uint16_t>(values >> 16)), second (static_cast<uint16_t>(values))
 	{}
 
-	/*inline unsigned_ints(uint64_t values)
+	/*
+	/**
+	 * @brief Construct a new unsigned ints object from a uint64_t interpreted as two uint32_t concatenated
+	 * @todo It may be preferable to use explicit keyword as this constructor would be unintuitive when implicitly called or called as cast operator
+	 *//*
+	inline unsigned_ints(uint64_t values)
 		: first(static_cast<uint32_t>(values >> 32)), second(static_cast<uint32_t>(values))
 	{}*/
 

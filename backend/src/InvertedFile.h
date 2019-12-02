@@ -1,3 +1,14 @@
+/**
+ * @file InvertedFile.h
+ * @author Quentin Guye, Nathan Mesnard, Paul-Emmanuel Sotir, Tianjian Ye
+ * @brief 
+ * @version 0.1
+ * @date 2019-12-02
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #pragma once
 
 #include <map>
