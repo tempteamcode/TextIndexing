@@ -1,0 +1,12 @@
+name: text_indexing_docs
+channels:
+  - default
+  - conda-forge
+dependencies:
+  - python=3.6
+  - doxygen>=1.8.*
+  - pip:
+    - sphinx
+    - sphinx_rtd_theme
+    - breathe
+    - sphinxcontrib-openapi

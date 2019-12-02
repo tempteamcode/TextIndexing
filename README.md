@@ -23,3 +23,6 @@ Rendez vous sur votre navigateur préféré et tapez :
 localhost:<le_port_donné_par_le_serveur>
 ```
 Normalement, le port est le **1337**.
+
+### Documentation
+Voir [./docs/README.md](./docs/README.md) ou [./docs/build/sphinx/html/index.html](./docs/build/sphinx/html/index.html) une fois la documentation compilée.
