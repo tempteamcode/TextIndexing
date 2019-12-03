@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { IfImporterService } from "../../services/ifimporter.service"
 
 @Component({
   selector: 'app-inverted-file',
@@ -7,9 +8,21 @@ import { Component, OnInit } from '@angular/core';
 })
 export class InvertedFileComponent implements OnInit {
 
-  constructor() { }
+  constructor( private ifPrvd: IfImporterService ) { }
 
   ngOnInit() {
+  }
+
+  regenerate() {
+    this.ifPrvd.regenerateInvertedFile()
+      .subscribe(
+        res => {
+          console.log( res )
+        },
+        err => {
+          console.error( err )
+        }
+      )
   }
 
 }

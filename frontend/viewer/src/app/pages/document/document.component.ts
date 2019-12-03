@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from "@angular/router";
 import { IfImporterService } from "../../services/ifimporter.service"
+
+import { Document } from "../../models/document"
 
 @Component({
   selector: 'app-document',
@@ -8,13 +11,21 @@ import { IfImporterService } from "../../services/ifimporter.service"
 })
 export class DocumentComponent implements OnInit {
 
-  constructor( public ifPrvd: IfImporterService ) { }
+  public document: Document = new Document()
+  public days: string[] = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+  public months: string[] = ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December"]
+
+  constructor( public ifPrvd: IfImporterService, private route: ActivatedRoute ) { }
 
   ngOnInit() {
     console.log("Hello")
-    this.ifPrvd.getDocument("4259932")
+    let id = this.route.snapshot.paramMap.get('id') || "4259932"
+    this.ifPrvd.getDocument( id )
       .subscribe(
-      (res) => { console.log("Yes",res) },
+      (res) => {
+        console.log("Yes",res)
+        this.document = new Document( id, res["title"], ""+res["date"], res["contents"] )
+      },
       (err) => { console.error("No",err) }
     )
   }

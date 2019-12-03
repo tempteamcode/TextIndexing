@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -5,16 +7,20 @@
 #include <iterator>
 #include <deque>
 using namespace std;
+
+struct TF {
+	int d;
+	double frequency;
+};
+struct TS {
+	int d;
+	double score;
+};
+
 class FA{
-	public:
-	struct TF{
-		int d;
-		double frequency;
-	};
-	struct TS{
-		int d;
-		double score;
-	};
+public:
+	using TF = ::TF;
+	using TS = ::TS;
 	vector<int> M;
 	vector<TS> C;
 	vector<TS> result;

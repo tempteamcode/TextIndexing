@@ -67,8 +67,10 @@ Token_t Tokenizer::extractToken(std::istream & is)
 	{
 		std::ostringstream tokenSs;
 
-		for (char c; (c = is.peek()) != EOF; tokenSs << c)
+		char c; for (int cint; (cint = is.peek()) != EOF; tokenSs << c)
 		{
+			c = static_cast<char>(cint);
+
 			std::string separator;
 			if (!isCharValidText[(int)c] && isNextTokenASeparator(is, separator))
 			{
@@ -131,12 +133,12 @@ std::string PreprocessorTagsData::separateTagsData(std::istream& is)
 	return result;
 }
 
-bool Tokenizer::extract(const std::string& data, const string_view& range, string_view& result)
+bool Tokenizer::extract(const string_view& data, string_view& result)
 {
-	std::string::const_iterator pos = range.begin;
+	std::string::const_iterator pos = data.begin;
 	for (;;)
 	{
-		if (pos == range.end) return false; // no token
+		if (pos == data.end) return false; // no token
 		if (isCharValidText[(int)(*pos)]) break;
 		if (isCharValidToken[(int)(*pos)])
 		{
@@ -152,7 +154,7 @@ bool Tokenizer::extract(const std::string& data, const string_view& range, strin
 	for (;;)
 	{
 		++pos;
-		if (pos == range.end) break;
+		if (pos == data.end) break;
 		if (!isCharValidText[(int)(*pos)]) break;
 	}
 	result.end = pos;

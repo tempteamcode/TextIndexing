@@ -14,4 +14,17 @@ export class IfImporterService {
 
   }
 
+  searchWords( words: string[] = [] ) {
+
+    let options: HttpHeaders = new HttpHeaders({ contentType: "text/plain" } )
+    return this.http.get( "/api/search?words=" + words.join("+"), { headers: options } )
+
+  }
+
+  regenerateInvertedFile() {
+
+    let options: HttpHeaders = new HttpHeaders({ contentType: "text/plain" } )
+    return this.http.get( "/api/regenerate", { headers: options } )
+    
+  }
 }

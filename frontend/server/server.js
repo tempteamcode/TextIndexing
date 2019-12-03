@@ -23,20 +23,38 @@ const viewerRoot = "/viewer/"
 app.use(express.static(path.join(__dirname, 'dist')));
 // app.use('/api', api);
 
-app.get("/api/document/4259932", function( req, res ) {
-  console.log("Call document api")
-  exec("./build/TextIndexer", (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return;
-    }
-    data = stdout;
-    console.log(`stdout: ${stdout}`);
-  });
-  exec('./build/TextIndexer document_json 4259932').stdout.on('data', (data) => {
-    console.log("iogfeoagfeaygfeaogy")
+app.get("/api/regenerate", function( req, res ) {
+
+  console.log( "Call document api" )
+
+  exec('./build/TextIndexer index ' ).stdout.on('data', (data) => {
+    console.log("Send query " + "")
     console.log(`stdout: ${data}`);
-    res.send( stdout )
+    res.send( data )
+  });
+
+});
+
+app.get("/api/search", function( req, res ) {
+
+  console.log("Call document api", req.query.words )
+
+  exec('./build/TextIndexer query ' + req.query.words ).stdout.on('data', (data) => {
+    console.log("Send query " + "")
+    console.log(`stdout: ${data}`);
+    res.send( data )
+  });
+
+});
+
+app.get("/api/document/*", function( req, res ) {
+  let urlSplit = req.url.split("/")
+  console.log("Call document api")
+  let documentId = urlSplit[urlSplit.length-1]
+  exec('./build/TextIndexer document_json ' + documentId).stdout.on('data', (data) => {
+    console.log("Send document " + documentId)
+    console.log(`stdout: ${data}`);
+    res.send( data )
   });
 })
 

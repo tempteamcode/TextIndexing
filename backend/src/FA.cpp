@@ -1,6 +1,6 @@
 #include "FA.h"
 using namespace std;
-bool sortinrev(const FA::TS &a,const FA::TS &b){
+inline bool sortinrev(const FA::TS &a,const FA::TS &b){
        return ((a.score > b.score) ||(a.score == b.score && a.d<b.d));
 }
 
@@ -32,11 +32,11 @@ bool FA::SeenFirstTime(TF tf){
 	}
 }
 double FA::scoreTotalForDoc(int docID,vector<vector<TF>>& tab){
-	double sum;
+	double sum = 0.0;
 	for ( const auto &row : tab ){
 	   for ( const auto &s : row ){
 		   if(s.d==docID){
-			   sum=sum+s.frequency;
+			   sum += s.frequency;
 		   }
 	   }
 	}
@@ -69,12 +69,12 @@ void FA::displayTab(vector<vector<TF>> &tab){
 		1. Sorted access in parallel to the qt (let d be the doc met)
 		2. If d has been seen for all the qt
 			1. Remove d from M
-			2. Insert (d,s(t1+t2+¡­, d)) into C
+			2. Insert (d,s(t1+t2+Â¡Â­, d)) into C
 		3. Else if d is seen for the first time
 			1. Insert d into M
  *
  * */
-void FA::step1(int k,vector<vector<TF>>& tab){
+/*void FA::step1(int k,vector<vector<TF>>& tab){
 	int increment=1;
 	vector<vector<int>> qt(tab.size());
 	double score;
@@ -82,7 +82,8 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 	TF tf;
 	while((int)C.size()!=k){
 		for (int j=0;j<(int)tab.size();j++){
-		   for (int i=increment-1;i<increment;i++){
+			int i = increment; //for (int i=increment-1;i<increment;i++){
+				if (i >= tab.at(j).size()) return;
 			  tf=tab.at(j).at(i);
 			  qt.at(j).push_back(tf.d);
 			  if(hasSeenForAll(tf,qt)){
@@ -93,17 +94,48 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 			  else if(SeenFirstTime(tf)){
 				  M.push_back(tf.d);
 			  }
-		   }
+		   //}
 		   if((int)C.size()==k)break;
 		}
 		increment++;
 	}
+}*/
+void FA::step1(int k,vector<vector<TF>>& tab){
+	int row=0;
+	vector<vector<int>> qt(tab.size());
+	double score;
+	vector<int> v;
+	C.clear();
+	if(k>tab.at(0).size()){
+		for (TF tf1:tab.at(0)){
+			score=scoreTotalForDoc(tf1.d,tab);
+			C.push_back({tf1.d,score});
+		}
+	}
+	else{
+		TF tf;
+		while((int)C.size()!=k && row <tab.at(0).size()){
+			for (int i=0;i<(int)tab.size();i++){
+				tf=tab.at(i).at(row);
+				qt.at(i).push_back(tf.d);
+				  if(hasSeenForAll(tf,qt)){
+					  removeDoc(tf);
+					  score=scoreTotalForDoc(tf.d,tab);
+					  C.push_back({tf.d,score});
+				  }
+				  else if(SeenFirstTime(tf)){
+					  M.push_back(tf.d);
+				  }
+			}
+			row++;
+		}
+	}
 }
 
 /*
- * For each d ¡Ê M
+ * For each d Â¡ÃŠ M
 		1. Random access to all remaining qt to compute the aggregated score of d
-		2. Insert (d,s(t1+t2+¡­, d)) into C
+		2. Insert (d,s(t1+t2+Â¡Â­, d)) into C
  *
  * */
 void FA::step2(vector<vector<TF>>& tab){
@@ -122,7 +154,9 @@ void FA::step3(int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
 	for(int i=0;i<k;i++){
-		result.push_back(C.at(i));
+		if(i<C.size()){
+			result.push_back(C.at(i));
+		}
 	}
 	C.clear();
 	C=result;

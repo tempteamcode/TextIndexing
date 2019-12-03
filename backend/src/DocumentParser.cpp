@@ -11,9 +11,9 @@ void print_tags(const DocumentTree_t& tag, const std::string& indent)
 {
 	std::cout << indent << '<' << tag.name << '>' << std::endl;
 
-	for (auto& tag : tag.tags)
+	for (auto& subtag : tag.tags)
 	{
-		print_tags(tag, indent + "    ");
+		print_tags(subtag, indent + "    ");
 	}
 
 	if (!tag.data.empty())

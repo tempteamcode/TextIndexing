@@ -1,6 +1,8 @@
 import { Component, OnInit, AfterViewInit,ViewChild, ElementRef } from '@angular/core';
 import { ResearchResults,ResearchItem } from "../../models/research-results";
 
+import { IfImporterService } from "../../services/ifimporter.service";
+
 
 declare var M
 
@@ -21,7 +23,7 @@ export class ResearchComponent implements OnInit {
 
   public researchResults: ResearchResults = null
 
-  constructor() { }
+  constructor( private ifPrvd: IfImporterService ) { }
 
   ngOnInit() {
   }
@@ -32,6 +34,16 @@ export class ResearchComponent implements OnInit {
   }
 
   search() {
+
+    this.ifPrvd.searchWords( this.searchWords.split(" ") )
+      .subscribe(
+        (res) => {
+          console.log( res )
+        },
+        (err) => {
+          console.error( err )
+        }
+      )
     // console.log( this.materializeSelect.getSelectedValues() )
     this.researchResults = new ResearchResults()
     this.researchResults.results.push( new ResearchItem( 5439535, 8 ) )

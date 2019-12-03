@@ -17,6 +17,7 @@ import { IfImporterService } from "./services/ifimporter.service";
 const appRoutes = [
   { path: 'research', component: ResearchComponent },
   { path: 'document', component: DocumentComponent },
+  { path: 'document/:id', component: DocumentComponent },
   { path: 'inverted-file', component: InvertedFileComponent },
   { path: '', redirectTo: 'research', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent }

@@ -18,7 +18,7 @@ inline float freqTF(const Frequency_t& freq)
 }
 inline float freqTFIDF(const Frequency_t& freq, unsigned int documents_in, unsigned int documents_total)
 {
-	return documents_in <= 0 ? freqTF(freq) : freqTF(freq) * log(documents_total / documents_in);
+	return documents_in <= 0 ? freqTF(freq) : freqTF(freq) * log(static_cast<float>(documents_total) / static_cast<float>(documents_in));
 }
 
 typedef std::unordered_map<std::string, Frequency_t> TFID_t;

@@ -59,7 +59,7 @@ void testTA(TA ta,vector<vector<TA::TF>> t,int k){
 	end=clock();
 	cout<<"time:"<<(double)(end-start)/CLOCKS_PER_SEC<<endl;
 }
-int main() {
+int main_old() {
 	vector<vector<FA::TF>> tab1;
 	tab1=makeTab1(20,1500);
 	vector<vector<TA::TF>> tab2;

@@ -8,7 +8,8 @@
 #include "src/InvertedFile.h"
 #include "src/search.h"
 #include "src/utility.h"
-
+#include "src/TA.h"
+#include "FA.h"
 
 typedef unsigned_ints FileDocumentUID_t;
 
@@ -237,8 +238,54 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		return false;
 	}
 
-	// auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-	// auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+
+	std::vector<std::vector<TA::TF>> tab;
+	for (auto& it: IF)
+	{
+		auto& vec = it.second;
+		std::vector<TA::TF> row; row.reserve(vec.size());
+		for (auto& elem : vec)
+		{
+			TA::TF item;
+			item.d = elem.first;
+			item.frequency = freqTF(elem.second);
+			row.push_back(item);
+		}
+		std::sort(row.begin(), row.end(), [] (TA::TF& f1, TA::TF& f2) {
+			return (f1.frequency > f2.frequency) || (f1.frequency == f2.frequency && f1.d < f2.d);
+		});
+		tab.push_back(row);
+	}
+
+	TA ta;
+	std::vector<TA::TS> result = ta.TAlgo(10, tab);
+
+	SearchResults_t resultsTA;
+	for (auto& res : result)
+	{
+		DocFreq_t freq;
+		freq.docID = res.d;
+		freq.frequency.first = res.score * 50000;
+		freq.frequency.second = 50000;
+		resultsTA.push_back(freq);
+	}
+
+	FA fa;
+	fa.FAlgo(10, tab);
+
+	SearchResults_t resultsFA;
+	for (auto& res : fa.result)
+	{
+		DocFreq_t freq;
+		freq.docID = res.d;
+		freq.frequency.first = res.score * 50000;
+		freq.frequency.second = 50000;
+		resultsFA.push_back(freq);
+	}
+
+
+	//auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	//auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
 
 	auto resultsShow = [&](const SearchResults_t& results, const char* name) {
 		std::cout << "Top 10 (" << name << "):" << std::endl;
@@ -250,8 +297,10 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		std::cout << std::endl;
 	};
 
-	// resultsShow(resultsConjunction, "naive search conjunction");
-	// resultsShow(resultsDisjunction, "naive search disjunction");
+	//resultsShow(resultsConjunction, "naive search conjunction");
+	//resultsShow(resultsDisjunction, "naive search disjunction");
+	resultsShow(resultsTA, "TA");
+	resultsShow(resultsFA, "FA");
 
 	return true;
 }
@@ -331,9 +380,13 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	try
+	//try
 	{
+<<<<<<< HEAD
 		bool success = true;
+=======
+		bool success = false;
+>>>>>>> 95cb3e47e442865a68d26c22caaa64dda2accab8
 
 		if (arguments.index)
 		{
@@ -354,7 +407,7 @@ int main(int argc, char * argv[])
 
 		return success ? 0 : 1;
 	}
-
+	/*
 	catch (...)
 	{
 		std::cout << std::endl;
@@ -363,7 +416,7 @@ int main(int argc, char * argv[])
 
 		try
 		{
-			/*re*/throw;
+			/re/throw;
 		}
 		catch (const custom_exception& e)
 		{
@@ -389,5 +442,5 @@ int main(int argc, char * argv[])
 
 		std::cout << "Aborting." << std::endl;
 		return 1;
-	}
+	}*/
 }
