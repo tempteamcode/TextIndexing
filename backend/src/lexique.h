@@ -13,6 +13,9 @@
 
 namespace Document {
 
+    /**
+     * @brief Lexical enumeration of Tags (unsigned int as underlying type)
+     */
     enum TagLex : unsigned int {
         EMPTY_TAG,
         P_TAG,
@@ -32,6 +35,9 @@ namespace Document {
         CORRECTION_TAG,
     };
 
+    /**
+     * @brief Maps TagLex enumeration tags to their respective text string
+     */
     std::map<TagLex, std::string> tagLexStrMap = 
     {
         { EMPTY_TAG, "" },
@@ -52,6 +58,9 @@ namespace Document {
         { CORRECTION_TAG, "CORRECTION" },
     };
 
+    /**
+     * @brief Maps Tag text strings to their respective TagLex enumeration value (inverted tagLexStrMap)
+     */
     std::map<std::string, TagLex> strTagLexMap;
 
     inline std::string toStr(const TagLex lex) { 
