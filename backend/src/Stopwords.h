@@ -1,11 +1,11 @@
 #pragma once
 
-#include <set>
+#include <unordered_set>
 #include <string>
 
 // Source : https://gist.github.com/sebleier/554280
 
-static const std::set<std::string> stopwords = {
+static const std::unordered_set<std::string> stopwords = {
 "i",
 "me",
 "my",
