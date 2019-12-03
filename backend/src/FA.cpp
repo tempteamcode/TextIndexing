@@ -2,6 +2,7 @@
 */
 
 /*
+Fagin’s top-k query algorithm (FA)
 1. M = ∅; C = ∅; (Step 0)
 2. Repeat until |C|=k (Step 1)
 	1. Sorted access in parallel to the qt (let d be the doc met)
