@@ -1,3 +1,18 @@
+/*Source: 	Combining Fuzzy Information: An Overview. Ronald Fagin.
+		A Survey of Top-k Query Processing Techniques in Relational Database Systems. Ilyas, Beskales and Soliman.
+		http://alumni.cs.ucr.edu/~skulhari/Top-k-Query.pdf
+*/
+
+/*
+ * Threshold Algorithm
+ 	1. Access the elements sequentially and at each sequential access (Step 1)
+	(a) Set the threshold t to be the aggregate of the scores seen in this access.
+	(b) Do random accesses and compute the scores of the seen objects.
+	(c) Maintain a list of top-k objects seen so far
+	(d) Stop, when the scores of the top-k are greater or equal to the threshold.
+	2. Return the top-k seen so far (Step 2)
+ * */
+
 #include "TA.h"
 using namespace std;
 inline bool sortinrev(const TA::TS &a,const TA::TS &b){
@@ -69,14 +84,7 @@ void TA::sortedAccess(int row,vector<vector<TF>> &tab){
 	}
 	t=t/tab.size();
 }
-/*
- * At each sequential access
-	(a) Set the threshold t to be the aggregate of the scores seen in this access.
-	(b) Do random accesses and compute the scores of the seen objects.
-	(c) Maintain a list of top-k objects seen so far
-	(d) Stop, when the scores of the top-k are greater or equal to the threshold.
 
- * */
 void TA::step1(int k,vector<vector<TF>> &tab){
 	int row=0;
 	if (k>tab.at(0).size()){
@@ -97,9 +105,6 @@ void TA::step1(int k,vector<vector<TF>> &tab){
 		}
 	}
 }
-/*
- * 2. Return the top-k seen so far
- * */
 void TA::step2(int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
