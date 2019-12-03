@@ -6,6 +6,12 @@
 #include <vector>
 #include <map>
 
+/**
+* Structure représentant une paire d'entiers.
+* Ces entiers sont à manipuler comme s'ils étaients des "unsigned int",
+* leur type réel (uint16_t, uint32_t, ...) n'est déterminé que selon les besoins de cette application.
+**/
+
 struct unsigned_ints
 {
 	uint16_t first;
@@ -36,6 +42,7 @@ struct unsigned_ints
 	}*/
 };
 
+/// Fonctions pour écrire, lire, ou sauter une valeur dans un flux. 
 template<typename T>
 void binWrite(std::ostream& os, const T& value);
 template<typename T>
@@ -44,6 +51,7 @@ template<typename T>
 void binSkip(std::istream& is);
 
 /*
+/// Fonctions pour écrire, lire, ou sauter un entier dans un flux.
 template<>
 void binWrite<unsigned int>(std::ostream& os, const unsigned int& value);
 template<>
@@ -51,6 +59,7 @@ void binRead<unsigned int>(std::istream& is, unsigned int& value);
 template<>
 void binSkip<unsigned int>(std::istream& is);
 
+/// Fonctions pour écrire, lire, ou sauter une chaîne de caractères dans un flux.
 template<>
 void binWrite<std::string>(std::ostream& os, const std::string& text);
 template<>
@@ -59,6 +68,7 @@ template<>
 void binSkip<std::string>(std::istream& is);
 */
 
+/// Fonctions pour écrire, lire, ou sauter un std::vector dans un flux.
 template<typename T1, typename T2>
 void binWrite_vec(std::ostream& os, const std::vector<std::pair<T1, T2>>& vec)
 {
@@ -93,6 +103,7 @@ void binSkip_vec(std::istream& is)
 	}
 }
 
+/// Fonctions pour écrire, lire, ou sauter une std::map dans un flux.
 template<typename TK, typename TV>
 void binWrite_map(std::ostream& os, const std::map<TK, TV>& map)
 {

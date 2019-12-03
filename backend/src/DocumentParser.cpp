@@ -9,7 +9,7 @@
 
 void print_tags(const DocumentTree_t& tag, const std::string& indent)
 {
-	std::cout << indent << '<' << tag.name << '>' << std::endl;
+	std::cerr << indent << '<' << tag.name << '>' << std::endl;
 
 	for (auto& subtag : tag.tags)
 	{
@@ -18,10 +18,15 @@ void print_tags(const DocumentTree_t& tag, const std::string& indent)
 
 	if (!tag.data.empty())
 	{
-		std::cout << indent << (tag.data.size() > 30 ? tag.data.substr(0, 27) + "..." : tag.data) << std::endl;
+		std::cerr
+			<< indent
+			<< (tag.data.size() > 30 ? tag.data.substr(0, 27) + "..." : tag.data)
+			<< std::endl;
 	}
 
-	std::cout << indent << '<' << '/' << tag.name << '>' << std::endl;
+	std::cerr
+		<< indent << '<' << '/' << tag.name << '>'
+		<< std::endl;
 }
 
 std::vector<string_view> extractTokens(const std::string& data)
@@ -97,7 +102,7 @@ void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document
 				if (tryParseInt(words[0], value))
 				{
 					if (document.DOCID != 0) std::cerr << "/!\\ several DOCIDs for one document" << std::endl;
-					
+
 					document.DOCID = value;
 
 					tag.data.clear();
@@ -117,7 +122,7 @@ void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document
 					subtag.data.clear();
 					continue;
 				}
-				
+
 				std::vector<std::string> words;
 				for (auto& word_view : words_view) words.push_back(std::string(word_view));
 
@@ -136,7 +141,7 @@ void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document
 			if (tag.tags.size() >= 1 && (*tag.tags.begin()).name == "P")
 			{
 				auto& subtag = (*tag.tags.begin());
-				
+
 				auto words = extractTokens(subtag.data);
 
 				if (subtag.name == "P" && words.size() == 2)
@@ -145,7 +150,7 @@ void extractDocumentData(DocumentTree_t& document_tree, DocumentData_t& document
 					if (words[1] == "words" && tryParseInt(words[0], value))
 					{
 						if (document.LENGTH != 0) std::cerr << "/!\\ several lengthes in one document" << std::endl;
-						
+
 						document.LENGTH = value;
 						subtag.data.clear();
 					}

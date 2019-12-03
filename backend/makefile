@@ -17,6 +17,8 @@ build:
 	g++ -std=c++14 ${WARNINGS} ${FLAGS} ${SRCS} main.cpp -o ${EXE}
 	@mkdir -p ./build
 	@mv ${EXE} ${BUILD_FOLDER}${EXE}
+	@mkdir -p ../frontend/server/build
+	@cd build && cp ${EXE} ../../frontend/server/build/${EXE}
 
 .PHONY : build
 

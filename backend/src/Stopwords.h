@@ -1,11 +1,11 @@
 #pragma once
 
-#include <set>
+#include <unordered_set>
 #include <string>
 
 // Source : https://gist.github.com/sebleier/554280
 
-static const std::set<std::string> stopwords = {
+static const std::unordered_set<std::string> stopwords = {
 "i",
 "me",
 "my",
@@ -135,6 +135,7 @@ static const std::set<std::string> stopwords = {
 "now"
 };
 
+/// Renvoit si un mot est un "stopword".
 inline bool isStopword(const std::string& word)
 {
 	return (stopwords.find(word) != stopwords.end());

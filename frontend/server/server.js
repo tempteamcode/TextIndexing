@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get("/api/regenerate", function( req, res ) {
 
-  console.log( "Call document api" )
+  console.log( "Call document api, regnerate" )
 
   exec('./build/TextIndexer index ' ).stdout.on('data', (data) => {
     console.log("Send query " + "")
@@ -37,25 +37,37 @@ app.get("/api/regenerate", function( req, res ) {
 
 app.get("/api/search", function( req, res ) {
 
-  console.log("Call document api", req.query.words )
+  console.log("Call document api, search", req.query.words )
+  let sentOnce = false;
 
   exec('./build/TextIndexer query ' + req.query.words ).stdout.on('data', (data) => {
-    console.log("Send query " + "")
-    console.log(`stdout: ${data}`);
+    console.log("Send query " + req.query.words )
+    if( data[0] != "{" )
+      data = '{"error":"no query"}'
+    console.log(`stdout: ${data}`)
+    sentOnce = true;
     res.send( data )
   });
 
 });
 
 app.get("/api/document/*", function( req, res ) {
+
   let urlSplit = req.url.split("/")
-  console.log("Call document api")
+  console.log("Call document api, document")
   let documentId = urlSplit[urlSplit.length-1]
+  let sentOnce = false;
+
   exec('./build/TextIndexer document_json ' + documentId).stdout.on('data', (data) => {
+    if( sentOnce ) return;
     console.log("Send document " + documentId)
-    console.log(`stdout: ${data}`);
+    if( data[0] != "{" )
+      data = '{"error":"no document"}'
+    console.log(`stdout: ${data}`)
+    sentOnce = true;
     res.send( data )
   });
+
 })
 
 app.get("/status", function(req, res){

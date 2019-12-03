@@ -9,7 +9,7 @@
 #include "src/search.h"
 #include "src/utility.h"
 #include "src/TA.h"
-#include "FA.h"
+#include "src/FA.h"
 
 typedef unsigned_ints FileDocumentUID_t;
 
@@ -33,13 +33,15 @@ void file_tagsdata_process(const std::string& path, callback_t callback)
 	}
 }
 
+/// Affiche le contenu d'un fichier XML, en sautant des lignes avant et après chaque balise. (à n'utiliser qu'à des fins de débuggage uniquement)
 void file_tagsdata_print(const std::string& path)
 {
 	file_tagsdata_process(path, [] (std::string& tagordata) {
-		std::cout << tagordata << std::endl;
+		std::cerr << tagordata << std::endl;
 	});
 }
 
+/// Extrait les documents (articles de journal) contenus dans un fichier XML, et appelle une fonction callback sur chacun.
 template<class callback_t>
 void file_documents_process(const std::string& path, callback_t callback)
 {
@@ -52,16 +54,17 @@ void file_documents_process(const std::string& path, callback_t callback)
 	consumeDocuments(docextractor.getDocument(), callback);
 }
 
+/// Affiche les numéros des documents (articles de journal) contenus dans un fichier XML. (à n'utiliser qu'à des fins de débuggage uniquement)
 void file_documents_print(const std::string& path)
 {
 	file_documents_process(path, [] (DocumentTree_t& document_tree) {
 		DocumentData_t document;
 		extractDocumentData(document_tree, document);
-		std::cout << document.DOCNO << std::endl;
+		std::cerr << document.DOCNO << std::endl;
 	});
 }
 
-
+/// Charge la liste des fichiers d'entrée (contenue dans "inputs.txt"). Renvoit true en cas de succès.
 bool loadInputFiles(std::vector<std::string>& input_files)
 {
 	std::ifstream inputs( inputsFilePath );
@@ -80,6 +83,7 @@ bool loadInputFiles(std::vector<std::string>& input_files)
 	return true;
 }
 
+/// Récupère un document à partir de son UID, et le renvoit dans un format destiné à être converti en JSON.
 bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentUID_t ID, DocumentJSON_t& documentJSON)
 {
 	const std::string& input_file = input_files[ID.first - 1];
@@ -98,9 +102,10 @@ bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentU
 	return found;
 }
 
+/// Génère l'InvertedFile.
 void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_t& IF)
 {
-	std::cout << "Parsing the input files..." << std::endl;
+	std::cerr << "Parsing the input files..." << std::endl;
 
 	FileDocumentUID_t filedocumentID;
 
@@ -109,7 +114,7 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 	{
 		if (path.empty()) continue;
 
-		std::cout << path << std::endl;
+		std::cerr << path << std::endl;
 		filedocumentID.first++;
 
 		filedocumentID.second = 0;
@@ -137,12 +142,15 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 		}
 	}
 
-	std::cout << std::endl;
+	std::cerr << std::endl;
 }
 
-
-// ==== Program input parsing
-
+/**
+* structure pour stocker les arguments en ligne de commande
+*
+* Il n'est pas nécessaire de mettre (un constructeur avec) des valeurs par défaut (traduisant l'absence d'arguments)
+* car c'est lors du parsing des arguments (et non lors de la construction de la structure) que les attributs sont initialisés.
+**/
 struct arguments_t {
 	bool index = false;
 	std::vector<std::string> query;
@@ -158,6 +166,7 @@ struct arguments_t {
 	}
 };
 
+/// Extrait et parse les arguments passés en ligne de commande.
 bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 {
 	arguments.clear();
@@ -189,37 +198,36 @@ bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 }
 
 
-
-// ======== Modes
+// ======== Modes d'utilisation
 
 /**
-* Generates the inverted file.
-* @return true on success, false if an error occured
+* Génère l'InvertedFile (et affiche la progression).
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeBuildInvertedFile(const std::vector<std::string>& input_files)
 {
 	InvertedFile_t IF;
 
-	std::cout << "Generating the InvertedFile..." << std::endl;
+	std::cerr << "Generating the InvertedFile..." << std::endl;
 	makeInvertedFile(input_files, IF);
-	std::cout << "Generated the InvertedFile successfully." << std::endl;
-	std::cout << std::endl;
+	std::cerr << "Generated the InvertedFile successfully." << std::endl;
+	std::cerr << std::endl;
 
-	std::cout << "Exporting 'InvertedFile.bin'..." << std::endl;
+	std::cerr << "Exporting 'InvertedFile.bin'..." << std::endl;
 	if (!IFExport(IF, "InvertedFile.bin"))
 	{
-		std::cout << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
+		std::cerr << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
 		return false;
 	}
-	std::cout << "Exported 'InvertedFile.bin' successfully." << std::endl;
-	std::cout << std::endl;
+	std::cerr << "Exported 'InvertedFile.bin' successfully." << std::endl;
+	std::cerr << std::endl;
 
 	return true;
 }
 
 /**
-* Outputs the result of a query.
-* @return true on success, false if an error occured
+* Affiche les résultats d'une recherche.
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeQuerySearch(std::vector<std::string>& words)
 {
@@ -233,8 +241,9 @@ bool modeQuerySearch(std::vector<std::string>& words)
 
 	if (!IFImportPart(IF, "InvertedFile.bin", words))
 	{
-		std::cout << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
-		std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
+		std::cerr << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
+		std::cerr << "Run this program with the argument 'index' to generate it." << std::endl;
+		std::cout << "null" << std::endl;
 		return false;
 	}
 
@@ -283,38 +292,61 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		resultsFA.push_back(freq);
 	}
 
-
-	//auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-	//auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+	// auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) {
+	// 	return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>);
+	// };
+	// auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) {
+	// 	return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>);
+	// };
+	//
+	// auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	// auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
 
 	auto resultsShow = [&](const SearchResults_t& results, const char* name) {
-		std::cout << "Top 10 (" << name << "):" << std::endl;
+		std::cerr << "Top 10 (" << name << "):" << std::endl;
 		int index = 0;
 		for (auto& result : results)
 		{
-			std::cout << (++index) << ". document " << result.docID << " (frequency: " << freqTF(result.frequency) << ")" << std::endl;
+			std::cerr
+				<< (++index) << ". document " << result.docID
+				<< " (frequency: " << freqTF(result.frequency) << ")"
+				<< std::endl;
 		}
-		std::cout << std::endl;
+		std::cerr << std::endl;
 	};
-
-	//resultsShow(resultsConjunction, "naive search conjunction");
-	//resultsShow(resultsDisjunction, "naive search disjunction");
+	//
+	// resultsShow(resultsConjunction, "naive search conjunction");
+	// resultsShow(resultsDisjunction, "naive search disjunction");
 	resultsShow(resultsTA, "TA");
 	resultsShow(resultsFA, "FA");
 
+	json j;
+	j["TA"] = toJson( resultsTA );
+	j["FA"] = toJson( resultsFA );
+
+	std::cout << j.dump(4) << std::endl;
+	
 	return true;
 }
 
 /**
-* Outputs a specific document.
-* @return true on success, false if an error occured
+* Affiche un document en JSON à partir de son UID.
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocumentUID_t documentID)
 {
 	DocumentJSON_t documentJSON;
 	if (!loadDocumentJSON(input_files, documentID, documentJSON))
 	{
-		std::cerr << "ERROR: Could not load the document with ID " << documentID << "." << std::endl;
+		std::cout
+			<< "{\"error\":\"Could not load the document with ID "
+			<< documentID
+			<< "\"}" << "\n" << std::flush;
+
+		std::cerr
+			<< "ERROR: Could not load the document with ID "
+			<< documentID << "." << std::endl;
+
 		return false;
 	}
 
@@ -324,24 +356,25 @@ bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocument
 }
 
 /**
-* Default action.
-* @return true on success, false if an error occured
+* Action par défaut (en l'absence d'arguments en ligne de commande).
+* Pour l'instant, l'action par défaut consiste à vérifier qu'un InvertedFile a bien été généré.
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeDefault()
 {
 	InvertedFile_t IF;
 
-	std::cout << "Importing 'InvertedFile.bin'..." << std::endl;
+	std::cerr << "Importing 'InvertedFile.bin'..." << std::endl;
 	if (!IFImport(IF, "InvertedFile.bin"))
 	{
-		std::cout << "Unable to import 'InvertedFile.bin'." << std::endl;
-		std::cout << "Run this program with the argument 'index' to generate it." << std::endl;
+		std::cerr << "Unable to import 'InvertedFile.bin'." << std::endl;
+		std::cerr << "Run this program with the argument 'index' to generate it." << std::endl;
 		return false;
 	}
-	std::cout << "Imported 'InvertedFile.bin' successfully." << std::endl;
+	std::cerr << "Imported 'InvertedFile.bin' successfully." << std::endl;
 
-	std::cout << "InvertedFile contains " << IF.size() << " entries." << std::endl;
-	std::cout << std::endl;
+	std::cerr << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+	std::cerr << std::endl;
 
 	return true;
 }
@@ -350,6 +383,7 @@ bool modeDefault()
 // ======== Where the magic happens!
 // =================================
 
+// ======== Point d'entrée
 
 int main(int argc, char * argv[])
 {
@@ -380,13 +414,9 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	//try
+	try
 	{
-<<<<<<< HEAD
-		bool success = true;
-=======
 		bool success = false;
->>>>>>> 95cb3e47e442865a68d26c22caaa64dda2accab8
 
 		if (arguments.index)
 		{
@@ -407,7 +437,7 @@ int main(int argc, char * argv[])
 
 		return success ? 0 : 1;
 	}
-	/*
+
 	catch (...)
 	{
 		std::cout << std::endl;
@@ -416,7 +446,7 @@ int main(int argc, char * argv[])
 
 		try
 		{
-			/re/throw;
+			/*re*/throw;
 		}
 		catch (const custom_exception& e)
 		{
@@ -440,7 +470,8 @@ int main(int argc, char * argv[])
 		{
 		}
 
-		std::cout << "Aborting." << std::endl;
+		std::cerr << "Aborting." << std::endl;
+		std::cout << "{\"error\":\"Unknown error (bad try catch)\"}" << std::endl;
 		return 1;
-	}*/
+	}
 }

@@ -18,13 +18,14 @@ export class DocumentComponent implements OnInit {
   constructor( public ifPrvd: IfImporterService, private route: ActivatedRoute ) { }
 
   ngOnInit() {
-    console.log("Hello")
     let id = this.route.snapshot.paramMap.get('id') || "4259932"
     this.ifPrvd.getDocument( id )
       .subscribe(
       (res) => {
         console.log("Yes",res)
-        this.document = new Document( id, res["title"], ""+res["date"], res["contents"] )
+        if( !res["error"] ) {
+          this.document = new Document( id, res["title"], ""+res["date"], res["contents"] )
+        }
       },
       (err) => { console.error("No",err) }
     )

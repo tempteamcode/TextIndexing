@@ -31,23 +31,34 @@
 </div>
 
 
-<div class="container" *ngIf="!researchResults">
+<div class="container" *ngIf="!researchResults.size">
     <h5 class="center-align"><i>Start a research to get results</i></h5>
     <br/>
 </div>
 
-<div class="container" *ngIf="researchResults">
-    <h4>Results</h4>
+<div class="container" *ngIf="researchResults.size">
+  <h4>Results</h4>
+
+  <div *ngFor="let searchType of getKeys( researchResults )">
+    <hr/>
+
     <div class="row">
-      <i>You got {{researchResults.resultCount}} documents matching your search</i>
+      <i>You got {{researchResults.get(searchType).results.resultCount}} documents matching your search</i>
     </div>
-    <div class="row" *ngFor="let item of researchResults.results">
+    <div class="row" *ngFor="let item of researchResults.get(searchType).results">
+
       <div class="col s4">
-        <b>{{item.docId}}</b>
+        <a href="/document/{{item.docId}}"><b>{{item.docId}}</b></a>
       </div>
       <div class="col s8">
-        Received a score of 
-        <b>{{item.score}}</b>
+        Received a score of
+        <b>{{item.score}}</b> =>
+        <b>{{item.freq}}</b> out of <b>{{item.global_word_count}}</b>
       </div>
+
     </div>
+
+
+  </div>
+
 </div>

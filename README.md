@@ -1,25 +1,9 @@
 # TextIndexing
 
-## Tester avec le viewer
+## Organisation du dépôt
 
-### Prérequis
+Ce dépôt est organisé en deux parties :
+- une partie "backend" contenant l'indexeur de texte, pouvant générer un InvertedFile et permettant de réaliser des requêtes en ligne de commande
+- une partie "frontend" contenant un outil graphique de requêtage et de visualisation des résultats
 
-- Installer node.js ainsi que npm (installé avec node)
-- Installer le package angular-cli globalement
-  - Dans le dossier viewer, executer `make install-angular`
-- Install les packages locaux
-  - Dans le dossier viewer, executer `make install-npm-packages`
-
-### Process
-
-La commande `make build-and-run` va compiler le viewer et le copier dans le serveur puis lancer le serveur sur un port indiqué.
-
-Plus tard pour relancer le serveur sans recompiler le viewer `make run`
-
-### Ouvrir le viewer
-
-Rendez vous sur votre navigateur préféré et tapez : 
-```
-localhost:<le_port_donné_par_le_serveur>
-```
-Normalement, le port est le **1337**.
+Leur documentation se trouve dans le fichier "README.md" contenu dans leur propre dossier.

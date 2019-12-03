@@ -9,7 +9,7 @@ void TA::removeC(int k) {
 		C.erase(C.end()-1);
 	}
 }
-double TA::scoreTotal(TF pl,vector<vector<TF>> &tab){
+double TA::calculScore(TF pl,vector<vector<TF>> &tab){
 	double sum = 0.0;
 	for ( const auto &row : tab ){
 	   for ( const auto &s : row ){
@@ -18,41 +18,39 @@ double TA::scoreTotal(TF pl,vector<vector<TF>> &tab){
 		   }
 	   }
 	}
-	return sum;
+	return sum/tab.size();
 }
 void TA::InsertC(TF pl, vector<vector<TF>> &tab) {
 	bool flag=true;
-	double score;
 	for(TS itPL:C){
 		if(itPL.d==pl.d){
 			flag=false;
 		}
 	}
 	if(flag){
-		score=scoreTotal(pl,tab);
-		TS TS={pl.d,score};
+		TS TS={pl.d,calculScore(pl,tab)};
 		C.push_back(TS);
 	}
 }
 void TA::display_vector(const vector<int> &v){
     std::copy(v.begin(), v.end(),
-        std::ostream_iterator<int>(std::cout, " "));
-    cout<<endl;
+        std::ostream_iterator<int>(std::cerr, " "));
+    cerr<<endl;
 }
 void TA::displayC(){
     for(int i=0;i<(int)C.size();i++){
-    	cout<<C.at(i).d<<" "<<C.at(i).score<<"; ";
+    	cerr<<C.at(i).d<<" "<<C.at(i).score<<"; ";
     }
-    cout<<endl;
+    cerr<<endl;
 }
 
 void TA::displayTab(vector<vector<TF>> &tab){
     for(vector<TF> vpl: tab){
     	for(TF pl: vpl){
-    		cout<<pl.d<<" "<<pl.frequency<<"; ";
+    		cerr<<pl.d<<" "<<pl.frequency<<"; ";
     	}
     }
-    cout<<endl;
+    cerr<<endl;
 }
 bool TA::kDocT(int k){
 	int i=0;
@@ -69,6 +67,7 @@ void TA::sortedAccess(int row,vector<vector<TF>> &tab){
 	for(vector<TF> vpl:tab){
 		t=t+vpl.at(row).frequency;
 	}
+	t=t/tab.size();
 }
 /*
  * At each sequential access
@@ -78,32 +77,11 @@ void TA::sortedAccess(int row,vector<vector<TF>> &tab){
 	(d) Stop, when the scores of the top-k are greater or equal to the threshold.
 
  * */
-/*void TA::step1(int k,vector<vector<TF>> &tab){
-	int row=0;
-	//vector<vector<int>> qt(tab.size());
-	vector<int> v;
-	TF pl;
-	vector<double> vTau(tab.size());
-	while(kDocT(k)){
-		sortedAccess(row,tab);
-		for (vector<TF>& qt: tab){
-			pl=qt.at(row);
-			InsertC(pl,tab);
-		}
-		removeC(k);
-		row++;
-	}
-}*/
-
 void TA::step1(int k,vector<vector<TF>> &tab){
 	int row=0;
-	vector<vector<int>> qt(tab.size());
-	vector<int> v;
-	double score;
 	if (k>tab.at(0).size()){
 		for (TF tf1:tab.at(0)){
-			score=scoreTotal(tf1,tab);
-			C.push_back({tf1.d,score});
+			C.push_back({tf1.d,calculScore(tf1,tab)});
 		}
 	}
 	else{
@@ -119,7 +97,6 @@ void TA::step1(int k,vector<vector<TF>> &tab){
 		}
 	}
 }
-
 /*
  * 2. Return the top-k seen so far
  * */
@@ -138,5 +115,6 @@ void TA::step2(int k){
 vector<TA::TS> TA::TAlgo(int k,vector<vector<TF>> &tab){
 	step1(k,tab);
 	step2(k);
-	return result;
+	//return result;
+	return C;
 }

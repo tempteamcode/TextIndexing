@@ -7,6 +7,12 @@
 
 #include "InvertedFile.h"
 
+#include "../includes/json.hpp"
+// for convenience
+using json = nlohmann::json;
+
+
+
 
 template<typename val_t>
 val_t val_min(val_t val1, val_t val2)
@@ -31,12 +37,26 @@ val_t val_zero(val_t)
 }
 
 
-// auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) { return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>); };
-// auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) { return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>); };
-
 
 typedef std::vector<DocFreq_t> SearchResults_t;
 typedef std::map<DocumentUID_t, Frequency_t> result_t;
+
+inline json toJson( const SearchResults_t & sr ) {
+
+	json j;
+	j["results"] = json::array();
+
+	for( auto & docFreq : sr ) {
+		auto jDF = json::object();
+		jDF["documentID"] = docFreq.docID;
+		jDF["count"] = docFreq.frequency.first;
+		jDF["global_word_count"] = docFreq.frequency.second;
+		j["results"].push_back( jDF );
+	}
+
+	return j;
+
+}
 
 
 /*
@@ -49,7 +69,10 @@ inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0
 }
 */
 
-inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0)
+
+
+/// Ordonne les résultats d'une recherche et ne conserve que les "maxcount" premiers.
+inline SearchResults_t resultsOrder( const result_t& results, unsigned int maxcount = 0)
 {
 	SearchResults_t searchresults;
 	searchresults.reserve(results.size());
@@ -63,6 +86,11 @@ inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0
 }
 
 
+/**
+* Effectue une recherche naïve sur un InvertedFile selon donné un agrégateur.
+* Ainsi, searchNaive<aggregate_maps_OR_max> aggrège les résultats de façon disjonctive en conservant la fréquence maximale des termes dans les documents.
+* searchNaive<aggregate_maps_AND_min> aggrège les résultats de façon conjonctive en conservant la fréquence minimale des termes dans les documents.
+**/
 template <class Aggregator_t>
 inline result_t searchNaive(const InvertedFile_t& IF, Aggregator_t aggregator)
 {
