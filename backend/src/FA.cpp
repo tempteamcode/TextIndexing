@@ -1,3 +1,21 @@
+/*Source: 	Ronald Fagin. Combining fuzzy information from multiple systems.
+*/
+
+/*
+1. M = ∅; C = ∅; (Step 0)
+2. Repeat until |C|=k (Step 1)
+	1. Sorted access in parallel to the qt (let d be the doc met)
+	2. If d has been seen for all the qt
+		1. Remove d from M
+		2. Insert (d,s(t1+t2+…, d)) into C
+	3. Else if d is seen for the first time
+		1. Insert d into M
+3. For each d ∈ M (Step 2)
+	1. Random access to all remaining qt to compute the aggregated score of d
+	2. Insert (d,s(t1+t2+…, d)) into C
+4. Return the top-k docs in C (Step 3)
+
+*/
 #include "FA.h"
 using namespace std;
 inline bool sortinrev(const FA::TS &a,const FA::TS &b){
@@ -64,42 +82,6 @@ void FA::displayTab(vector<vector<TF>> &tab){
     }
     cout<<endl;
 }
-/*
- * Repeat until |C|=k
-		1. Sorted access in parallel to the qt (let d be the doc met)
-		2. If d has been seen for all the qt
-			1. Remove d from M
-			2. Insert (d,s(t1+t2+…, d)) into C
-		3. Else if d is seen for the first time
-			1. Insert d into M
- *
- * */
-/*void FA::step1(int k,vector<vector<TF>>& tab){
-	int increment=1;
-	vector<vector<int>> qt(tab.size());
-	double score;
-	vector<int> v;
-	TF tf;
-	while((int)C.size()!=k){
-		for (int j=0;j<(int)tab.size();j++){
-			int i = increment; //for (int i=increment-1;i<increment;i++){
-				if (i >= tab.at(j).size()) return;
-			  tf=tab.at(j).at(i);
-			  qt.at(j).push_back(tf.d);
-			  if(hasSeenForAll(tf,qt)){
-				  removeDoc(tf);
-				  score=scoreTotalForDoc(tf.d,tab);
-				  C.push_back({tf.d,score});
-			  }
-			  else if(SeenFirstTime(tf)){
-				  M.push_back(tf.d);
-			  }
-		   //}
-		   if((int)C.size()==k)break;
-		}
-		increment++;
-	}
-}*/
 void FA::step1(int k,vector<vector<TF>>& tab){
 	int row=0;
 	vector<vector<int>> qt(tab.size());
@@ -131,12 +113,6 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 	}
 }
 
-/*
- * For each d ∈ M
-		1. Random access to all remaining qt to compute the aggregated score of d
-		2. Insert (d,s(t1+t2+…, d)) into C
- *
- * */
 void FA::step2(vector<vector<TF>>& tab){
 	for(auto d : M){
 		C.push_back({d,calculScore(d,tab)});
@@ -144,9 +120,6 @@ void FA::step2(vector<vector<TF>>& tab){
 	M.clear();
 }
 
-/*
- * Return the top-k docs in C
- * */
 void FA::step3(int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
