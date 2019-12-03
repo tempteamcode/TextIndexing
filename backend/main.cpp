@@ -13,6 +13,10 @@
 
 typedef unsigned_ints FileDocumentUID_t;
 
+
+// ======== Fonctions annexes
+
+/// Sépare les balises d'un fichier XML de leur contenu, et appelle une fonction callback sur chaque morceau (dans le bon ordre).
 template <class callback_t>
 void file_tagsdata_process(const std::string& path, callback_t callback)
 {
@@ -27,6 +31,7 @@ void file_tagsdata_process(const std::string& path, callback_t callback)
 	}
 }
 
+/// Affiche le contenu d'un fichier XML, en sautant des lignes avant et après chaque balise. (à n'utiliser qu'à des fins de débuggage uniquement)
 void file_tagsdata_print(const std::string& path)
 {
 	file_tagsdata_process(path, [] (std::string& tagordata) {
@@ -34,6 +39,7 @@ void file_tagsdata_print(const std::string& path)
 	});
 }
 
+/// Extrait les documents (articles de journal) contenus dans un fichier XML, et appelle une fonction callback sur chacun.
 template<class callback_t>
 void file_documents_process(const std::string& path, callback_t callback)
 {
@@ -46,6 +52,7 @@ void file_documents_process(const std::string& path, callback_t callback)
 	consumeDocuments(docextractor.getDocument(), callback);
 }
 
+/// Affiche les numéros des documents (articles de journal) contenus dans un fichier XML. (à n'utiliser qu'à des fins de débuggage uniquement)
 void file_documents_print(const std::string& path)
 {
 	file_documents_process(path, [] (DocumentTree_t& document_tree) {
@@ -55,7 +62,7 @@ void file_documents_print(const std::string& path)
 	});
 }
 
-
+/// Charge la liste des fichiers d'entrée (contenue dans "inputs.txt"). Renvoit true en cas de succès.
 bool loadInputFiles(std::vector<std::string>& input_files)
 {
 	std::ifstream inputs("inputs.txt");
@@ -74,6 +81,7 @@ bool loadInputFiles(std::vector<std::string>& input_files)
 	return true;
 }
 
+/// Récupère un document à partir de son UID, et le renvoit dans un format destiné à être converti en JSON.
 bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentUID_t ID, DocumentJSON_t& documentJSON)
 {
 	const std::string& input_file = input_files[ID.first - 1];
@@ -92,6 +100,7 @@ bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentU
 	return found;
 }
 
+/// Génère l'InvertedFile.
 void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_t& IF)
 {
 	std::cout << "Parsing the input files..." << std::endl;
@@ -134,12 +143,19 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 	std::cout << std::endl;
 }
 
+/**
+* structure pour stocker les arguments en ligne de commande
+* 
+* Il n'est pas nécessaire de mettre (un constructeur avec) des valeurs par défaut (traduisant l'absence d'arguments)
+* car c'est lors du parsing des arguments (et non lors de la construction de la structure) que les attributs sont initialisés.
+**/
 struct arguments_t {
 	bool index;
 	std::vector<std::string> query;
 	unsigned int documentID;
 };
 
+/// Extrait et parse les arguments passés en ligne de commande.
 bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 {
 	arguments.index = false;
@@ -173,12 +189,11 @@ bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 }
 
 
-
-// ======== Modes
+// ======== Modes d'utilisation
 
 /**
-* Generates the inverted file.
-* @return true on success, false if an error occured
+* Génère l'InvertedFile (et affiche la progression).
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeBuildInvertedFile(const std::vector<std::string>& input_files)
 {
@@ -202,8 +217,8 @@ bool modeBuildInvertedFile(const std::vector<std::string>& input_files)
 }
 
 /**
-* Outputs the result of a query.
-* @return true on success, false if an error occured
+* Affiche les résultats d'une recherche.
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeQuerySearch(std::vector<std::string>& words)
 {
@@ -268,8 +283,8 @@ bool modeQuerySearch(std::vector<std::string>& words)
 	}
 
 
-	//auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-	//auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+	auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
 
 	auto resultsShow = [&](const SearchResults_t& results, const char* name) {
 		std::cout << "Top 10 (" << name << "):" << std::endl;
@@ -281,8 +296,8 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		std::cout << std::endl;
 	};
 
-	//resultsShow(resultsConjunction, "naive search conjunction");
-	//resultsShow(resultsDisjunction, "naive search disjunction");
+	resultsShow(resultsConjunction, "naive search conjunction");
+	resultsShow(resultsDisjunction, "naive search disjunction");
 	resultsShow(resultsTA, "TA");
 	resultsShow(resultsFA, "FA");
 
@@ -290,8 +305,8 @@ bool modeQuerySearch(std::vector<std::string>& words)
 }
 
 /**
-* Outputs a specific document.
-* @return true on success, false if an error occured
+* Affiche un document en JSON à partir de son UID.
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocumentUID_t documentID)
 {
@@ -308,8 +323,9 @@ bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocument
 }
 
 /**
-* Default action.
-* @return true on success, false if an error occured
+* Action par défaut (en l'absence d'arguments en ligne de commande).
+* Pour l'instant, l'action par défaut consiste à vérifier qu'un InvertedFile a bien été généré.
+* @return true en cas de succès, false si une erreur s'est produite
 */
 bool modeDefault()
 {
@@ -330,9 +346,8 @@ bool modeDefault()
 	return true;
 }
 
-// ======== Where the magic happens!
 
-
+// ======== Point d'entrée
 
 int main(int argc, char * argv[])
 {
@@ -363,7 +378,7 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	//try
+	try
 	{
 		bool success = false;
 
@@ -386,7 +401,7 @@ int main(int argc, char * argv[])
 
 		return success ? 0 : 1;
 	}
-	/*
+
 	catch (...)
 	{
 		std::cout << std::endl;
@@ -395,7 +410,7 @@ int main(int argc, char * argv[])
 
 		try
 		{
-			/re/throw;
+			/*re*/throw;
 		}
 		catch (const custom_exception& e)
 		{
@@ -421,5 +436,5 @@ int main(int argc, char * argv[])
 
 		std::cout << "Aborting." << std::endl;
 		return 1;
-	}*/
+	}
 }

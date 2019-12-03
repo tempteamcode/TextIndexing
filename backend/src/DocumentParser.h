@@ -12,7 +12,7 @@
 
 typedef std::unordered_map<std::string, unsigned int> TFC_t;
 
-/// Structure représentant un le contenu d'un document (un article de journal).
+/// Structure représentant le contenu d'un document (un article de journal).
 struct DocumentData_t
 {
 	std::string DOCNO;
@@ -43,7 +43,7 @@ struct DocumentJSON_t
 /// Effectue les étapes de "stemming" et "stopword removal" sur un mot. Renvoit false si le mot doit être supprimé.
 bool stemming_stopword(std::string& word);
 
-/// Affiche les balises d'un arbre, à n'utiliser qu'à des fins de débuggage uniquement.
+/// Affiche les balises d'un arbre. (à n'utiliser qu'à des fins de débuggage uniquement)
 void print_tags(const DocumentTree_t& tag, const std::string& indent);
 
 /**
