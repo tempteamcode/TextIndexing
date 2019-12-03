@@ -5,12 +5,12 @@
 
 /*
  * Threshold Algorithm
- 	1. Access the elements sequentially and at each sequential access
+ 	1. Access the elements sequentially and at each sequential access (Step 1)
 	(a) Set the threshold t to be the aggregate of the scores seen in this access.
 	(b) Do random accesses and compute the scores of the seen objects.
 	(c) Maintain a list of top-k objects seen so far
 	(d) Stop, when the scores of the top-k are greater or equal to the threshold.
-	2. Return the top-k seen so far
+	2. Return the top-k seen so far (Step 2)
  * */
 
 #include "TA.h"
