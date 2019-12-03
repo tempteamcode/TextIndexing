@@ -1,3 +1,13 @@
+/**
+ * @file Tokenizer.h
+ * @author Quentin Guye, Nathan Mesnard, Paul-Emmanuel Sotir, Tianjian Ye
+ * @brief 
+ * @version 0.1
+ * @date 2019-12-02
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #pragma once
 
 #include <string>
@@ -50,8 +60,8 @@ public:
 	Tokenizer();
 
 	/**
-	 * extract a token from a stream
-	 * @param is the stream
+	 * Extracts a token from a stream
+	 * @param is input stream
 	 * @return the first token of the stream
 	 */
 	Token_t extractToken(std::istream & is);

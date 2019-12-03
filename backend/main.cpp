@@ -333,7 +333,9 @@ bool modeDefault()
 // ======== Where the magic happens!
 
 
-
+/**
+ * Main C++ entry point
+ */
 int main(int argc, char * argv[])
 {
 	std::vector<std::string> input_files;

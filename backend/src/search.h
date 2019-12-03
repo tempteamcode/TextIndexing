@@ -1,3 +1,13 @@
+/**
+ * @file search.h
+ * @author Quentin Guye, Nathan Mesnard, Paul-Emmanuel Sotir, Tianjian Ye
+ * @brief 
+ * @version 0.1
+ * @date 2019-12-02
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #pragma once
 
 #include <vector>
@@ -6,7 +16,6 @@
 #include <algorithm>
 
 #include "InvertedFile.h"
-
 
 template<typename val_t>
 val_t val_min(val_t val1, val_t val2)
@@ -62,7 +71,11 @@ inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0
 	return searchresults;
 }
 
-
+/**
+ * @brief Aggregates all inverted file entries according to given aggregator policy
+ * @return result_t Returns aggregated Document ID to Frequency map
+ * @todo improve this comment
+ */
 template <class Aggregator_t>
 inline result_t searchNaive(const InvertedFile_t& IF, Aggregator_t aggregator)
 {

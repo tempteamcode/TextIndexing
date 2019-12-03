@@ -3,12 +3,17 @@
 #include<time.h>
 using namespace std;
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 bool dsc(const FA::TF &a,const FA::TF &b){
        return ((a.frequency > b.frequency) ||(a.frequency == b.frequency && a.d<b.d));
 }
+
 bool dsc1(const TA::TF &a,const TA::TF &b){
        return ((a.frequency > b.frequency) ||(a.frequency == b.frequency && a.d<b.d));
 }
+
+
 vector<vector<FA::TF>> makeTab1(int x,int y){
 	vector<vector<FA::TF>> tab;
 	vector<FA::TF> vtf;
@@ -23,6 +28,7 @@ vector<vector<FA::TF>> makeTab1(int x,int y){
 	}
 	return tab;
 }
+
 vector<vector<TA::TF>> makeTab2(int x,int y){
 	vector<vector<TA::TF>> tab;
 	vector<TA::TF> vtf;
@@ -37,6 +43,13 @@ vector<vector<TA::TF>> makeTab2(int x,int y){
 	}
 	return tab;
 }
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+/**
+ * @brief Tests FA class
+ * @test Tests FA class
+ */
 void testFA(FA fa,vector<vector<FA::TF>> t,int k){
 	clock_t start,end;
 	start=clock();
@@ -45,6 +58,11 @@ void testFA(FA fa,vector<vector<FA::TF>> t,int k){
 	end=clock();
 	cout<<"time:"<<(double)(end-start)/CLOCKS_PER_SEC<<endl;
 }
+
+/**
+ * @brief Tests FA class
+ * @test Tests TA class
+ */
 void testTA(TA ta,vector<vector<TA::TF>> t,int k){
 	clock_t start,end;
 	start=clock();
@@ -53,6 +71,11 @@ void testTA(TA ta,vector<vector<TA::TF>> t,int k){
 	end=clock();
 	cout<<"time:"<<(double)(end-start)/CLOCKS_PER_SEC<<endl;
 }
+
+/**
+ * @brief Tests FA and TA classes
+ * @test Tests FA and TA classes
+ */
 int main_old() {
 	vector<vector<FA::TF>> tab1;
 	//tab1=makeTab1(20,1500);
