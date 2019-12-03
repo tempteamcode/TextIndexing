@@ -135,6 +135,7 @@ static const std::set<std::string> stopwords = {
 "now"
 };
 
+/// Renvoit si un mot est un "stopword".
 inline bool isStopword(const std::string& word)
 {
 	return (stopwords.find(word) != stopwords.end());

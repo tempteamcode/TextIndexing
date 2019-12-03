@@ -31,6 +31,7 @@ val_t val_zero(val_t)
 }
 
 
+/// Définition d'aggrégateurs pour les fréquences de plusieurs termes sur des documents.
 auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) { return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>); };
 auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) { return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>); };
 
@@ -49,6 +50,7 @@ inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0
 }
 */
 
+/// Ordonne les résultats d'une recherche et ne conserve que les "maxcount" premiers.
 inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0)
 {
 	SearchResults_t searchresults;
@@ -63,6 +65,11 @@ inline SearchResults_t resultsOrder(result_t& results, unsigned int maxcount = 0
 }
 
 
+/**
+* Effectue une recherche naïve sur un InvertedFile selon donné un agrégateur.
+* Ainsi, searchNaive<aggregate_maps_OR_max> aggrège les résultats de façon disjonctive en conservant la fréquence maximale des termes dans les documents.
+* searchNaive<aggregate_maps_AND_min> aggrège les résultats de façon conjonctive en conservant la fréquence minimale des termes dans les documents.
+**/
 template <class Aggregator_t>
 inline result_t searchNaive(const InvertedFile_t& IF, Aggregator_t aggregator)
 {

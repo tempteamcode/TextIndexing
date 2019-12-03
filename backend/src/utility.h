@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 
+/// Exceptions personnalisées générées par notre programme.
 enum class custom_exception
 {
 	fs_access,
@@ -16,6 +17,7 @@ enum class custom_exception
 extern const std::vector<std::string> names_months;
 extern const std::vector<std::string> names_weekdays;
 
+/// Structure servant à stocker une date (année, mois, jour, et éventuellement jour de la semaine).
 struct Date_t
 {
 	enum class month_t : unsigned char {unknown = 0, january, february, march, april, may, june, july, august, september, october, november, december};
@@ -34,6 +36,12 @@ struct Date_t
 	operator std::string() const;
 };
 
+/**
+* La classe string_view permet de définir des sous-chaînes de chaînes existantes sans faire une copie de tous leurs caractères.
+* 
+* Elle repose sur le même principe (même si elle est bien plus simple) que la classe std::string_view apparue en C++17,
+* que nous n'utilisons pas car (pour des raisons de compilateurs utilisés) notre programme doit être compatible avec C++14.
+**/
 class string_view
 {
 public:
@@ -42,33 +50,45 @@ public:
 	
 	string_view() = default;
 
+	/// Construction d'une string_view sur une chaîne complète.
 	string_view(const std::string& str)
 		: begin(str.cbegin()), end(str.cend())
 	{}
 	
+	/// Construction d'une string_view à partir d'itérateurs sur une chaîne de début et de fin.
 	string_view(std::string::const_iterator begin, std::string::const_iterator end)
 		: begin(begin), end(end)
 	{}
 
+	/// Retourne une copie de la chaîne en tant que std::string. 
 	inline std::string str() const
 	{
 		return std::string(begin, end);
 	}
 
+	/** Opérateur de conversion en std::string.
+	* Les conversions implicites sont désactivées pour éviter des conversions non indispensables.
+	**/
 	inline explicit operator std::string() const
 	{
 		return str();
 	}
 };
 
+/// Renvoit si un caractère ASCII est une lettre.
 inline bool isCharAlpha(char c) {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
+/// Renvoit si un caractère ASCII est un chiffre.
 inline bool isCharNumeric(char c) {
 	return (c >= '0' && c <= '9');
 }
 
+/** Teste si deux chaînes de caractères sont égales.
+* Il est plus efficace d'utiliser cette fonction que de convertir les chaînes en std::string,
+* puis utiliser l'opérateur de comparaison sur des std::string fourni par le standard.
+**/
 inline bool streq(const char* str1, const char* str2)
 {
 	for (;;)
@@ -79,10 +99,13 @@ inline bool streq(const char* str1, const char* str2)
 	}
 }
 
+/// Teste si deux chaînes de caractères sont égales (l'une étant représentée par une string_view).
 bool operator ==(const string_view& str_view, const char* text);
 
+/// Renvoit une string_view de la chaîne fournie sans les éventuels espaces et sauts de ligne en début et en fin.
 string_view strstrip(const std::string& text);
 
+/// Modifie une chaîne de caractères pour transformer les majuscules en minuscules.
 inline void toLowerCase(std::string& text)
 {
 	for (unsigned int i = 0, len = text.length(); i < len; i++)
@@ -95,6 +118,7 @@ inline void toLowerCase(std::string& text)
 	}
 }
 
+/// Modifie une chaîne de caractères pour transformer les minuscules en majuscules.
 inline void toUpperCase(std::string& text)
 {
 	for (unsigned int i = 0, len = text.length(); i < len; i++)
@@ -107,42 +131,23 @@ inline void toUpperCase(std::string& text)
 	}
 }
 
+/// Tente de convertir un texte en entier. Renvoit true en cas de succès.
 bool tryParseInt(const string_view& chars, unsigned int& value);
 
+/// Tente de convertir un texte en entier. Renvoit true en cas de succès.
 bool tryParseInt(const std::string& chars, unsigned int& value);
 
+/// Tente de convertir un texte en date. Renvoit true en cas de succès.
 bool tryParseDate(const std::vector<std::string>& words, Date_t& date);
 
 /**
-* joins several strings into one with linear complexity
-* the resulting string is allocated with its final size to avoid reallocation when appending each substring
+* Réunit plusieurs chaînes en une seule avec une complexité linéaire.
+* La chaîne résultante est allouée une seule fois avec sa taille définitive pour éviter des réallocations lors de chaque concaténation.
 **/
 std::string stringJoin(const std::vector<std::string>& data, const std::string& sep);
 std::string stringJoin(const std::list<std::string>& data, char sep = ' ');
 
-
-template <typename Key, typename Value, typename MergedValue, class Aggregator>
-std::map<Key,MergedValue> mapIntersect(const std::map<Key,Value>& lhs, const std::map<Key,Value>& rhs)
-{
-	std::map<Key,MergedValue> result;
-	for (auto itl = lhs.begin(), itr = rhs.begin(), endl = lhs.end(), endr = rhs.end(); itl != endl && itr != endr; )
-	{
-		if (itl->first == itr->first)
-		{
-			result[itl->first] = Aggregator(itl->second, itr->second);
-			++itl; ++itr;
-		}
-		else
-		{
-			if (itl->first < itr->first)
-				++itl;
-			else
-				++itr;
-		}
-	}
-	return result;
-}
-
+/// Renvoit l'intersection de deux std::map.
 template <typename Key, typename Value, typename MergedValue, class Aggregator_t>
 std::map<Key, MergedValue> mapIntersection(const std::map<Key, Value>& lhs, const std::map<Key, Value>& rhs, Aggregator_t aggregator)
 {
@@ -168,6 +173,7 @@ std::map<Key, MergedValue> mapIntersection(const std::map<Key, Value>& lhs, cons
 	return result;
 }
 
+/// Renvoit l'union de deux std::map.
 template <typename Key, typename Value, typename MergedValue, class Aggregator_t, class AggregatorUnique_t>
 std::map<Key, MergedValue> mapUnion(const std::map<Key, Value>& lhs, const std::map<Key, Value>& rhs, Aggregator_t aggregator, AggregatorUnique_t aggregatorUnique)
 {

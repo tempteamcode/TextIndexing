@@ -6,7 +6,9 @@
 #include "utility.h"
 
 /**
-* separate tags from data
+* Préprocesseur XML permettant de séparer les balises de leur contenu.
+* Pour l'utiliser, il faut faire plusieurs appels successifs à la méthode "separateTagsData" en lui fournissant un flux XML.
+* Si le flux commence par une balise, cette balise sera retournée, sinon, toutes les données jusqu'à la prochaine balise seront retournées.
 **/
 class PreprocessorTagsData
 {
@@ -17,6 +19,7 @@ private:
 	enum class status_t { data, tag, eof } status = status_t::data;
 };
 
+/// représentation d'un token quelconque (mot, séparateur, nombre)
 struct Token_t {
 	
 	enum TokenType_t {
@@ -42,7 +45,9 @@ struct Token_t {
 };
 
 /**
-* extract the tokens of a string
+* La classe Tokenizer permet d'extraire les token d'un flux de texte.
+* Des appels successifs à la méthode "extractToken" retourneront les tokens successifs d'une chaîne de caractères.
+* Un appel à la méthode "extract" retournera une string_view sur le premier token d'une chaîne de caractères.
 **/
 class Tokenizer
 {
