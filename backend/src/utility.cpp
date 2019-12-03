@@ -121,7 +121,7 @@ std::string stringJoin(const std::vector<std::string>& data, const std::string& 
 	return result;
 }
 
-std::string stringJoin(const std::list<std::string>& data, char sep)
+std::string stringJoin(const std::list<std::string>& data, const char sep)
 {
 	size_t totalsize = data.size() + 1;
 	for (const std::string& str : data) totalsize += str.size();

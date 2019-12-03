@@ -1,25 +1,20 @@
-.. OT1 - Text Indexing documentation master file, created by
-   sphinx-quickstart on Mon Dec  2 14:03:57 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. OT1 - Text Indexing documentation master file
 
 Welcome to OT1 - Text Indexing's documentation!
 ===============================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
+   :caption: C++ Documentation
 
-.. doxygenstruct:: unsigned_ints
-   :members:
+   about
+   exhale/docs_root.rst
 
-.. todolist::
-
-.. openapi:: ./front_openapi_spec.yml
+.. TODO: remove it:
+.. openapi ./front_openapi_spec.yml
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

@@ -187,13 +187,19 @@ bool tryParseDate(const std::vector<std::string>& words, Date_t& date);
 
 /**
  * @brief Joins several strings into one with linear complexity
- * @param data 
- * @param sep Separator string
+ * @param data std::vector (or std::list) of std::string-s to be joined
+ * @param sep Separator string (or char)
  * @return The resulting joined std::string
  * @remark The resulting string is allocated with its final size to avoid reallocation when appending each substring.
+ * @todo use template parameter in order to support various data std::string container
  */
 std::string stringJoin(const std::vector<std::string>& data, const std::string& sep);
-std::string stringJoin(const std::list<std::string>& data, char sep = ' ');
+/**
+ * @overload
+ * @see stringJoin(const std::vector<std::string>&, const std::string&)
+ * @copybrief stringJoin(const std::vector<std::string>&, const std::string&)
+ */
+std::string stringJoin(const std::list<std::string>& data, const char sep = ' ');
 
 /**
  * @brief Template function returning the intersection of two given std::map. Key and Value template parameters of boths std::map should be the same.

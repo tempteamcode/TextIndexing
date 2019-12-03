@@ -4,9 +4,12 @@ channels:
   - conda-forge
 dependencies:
   - python=3.6
-  - doxygen>=1.8.*
+  - doxygen>=1.8.0
+  - doc8>=0.8.0
+  - autopep8>=1.4.4
   - pip:
     - sphinx
     - sphinx_rtd_theme
     - breathe
     - sphinxcontrib-openapi
+    - exhale

@@ -25,8 +25,6 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
-REM Please modify this line if you renamed/moved doxyfile.conf or if you want to have doxygen.exe in your PATH (use a specific executable path)
-doxygen.exe ./doxyfile.conf
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 goto end
 
