@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+extern bool outputOnlyJSON;
+
 /// Exceptions personnalisées générées par notre programme.
 enum class custom_exception
 {

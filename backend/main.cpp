@@ -1,24 +1,28 @@
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
+#include "src/utility.h"
 #include "src/files.h"
 #include "src/Tokenizer.h"
 #include "src/DocumentExtractor.h"
 #include "src/DocumentParser.h"
 #include "src/InvertedFile.h"
 #include "src/search.h"
-#include "src/utility.h"
-#include "src/TA.h"
 #include "src/FA.h"
+#include "src/TA.h"
 
 typedef unsigned_ints FileDocumentUID_t;
 
+bool outputOnlyJSON = false;
 
-std::string ressourcesRootFolder 	= "./ressources/";
-std::string inputsFilePath				= ressourcesRootFolder + "inputs.txt";
+std::string ressourcesRootFolder = "./ressources/";
+std::string inputsFilePath = ressourcesRootFolder + "inputs.txt";
 
 
+// ======== Fonctions annexes
 
+/// Sépare les balises d'un fichier XML de leur contenu, et appelle une fonction callback sur chaque morceau (dans le bon ordre).
 template <class callback_t>
 void file_tagsdata_process(const std::string& path, callback_t callback)
 {
@@ -37,7 +41,8 @@ void file_tagsdata_process(const std::string& path, callback_t callback)
 void file_tagsdata_print(const std::string& path)
 {
 	file_tagsdata_process(path, [] (std::string& tagordata) {
-		std::cerr << tagordata << std::endl;
+		if (!outputOnlyJSON)
+		std::cout << tagordata << std::endl;
 	});
 }
 
@@ -60,7 +65,8 @@ void file_documents_print(const std::string& path)
 	file_documents_process(path, [] (DocumentTree_t& document_tree) {
 		DocumentData_t document;
 		extractDocumentData(document_tree, document);
-		std::cerr << document.DOCNO << std::endl;
+		if (!outputOnlyJSON)
+		std::cout << document.DOCNO << std::endl;
 	});
 }
 
@@ -105,7 +111,8 @@ bool loadDocumentJSON(const std::vector<std::string>& input_files, FileDocumentU
 /// Génère l'InvertedFile.
 void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_t& IF)
 {
-	std::cerr << "Parsing the input files..." << std::endl;
+	if (!outputOnlyJSON)
+	std::cout << "Parsing the input files..." << std::endl;
 
 	FileDocumentUID_t filedocumentID;
 
@@ -114,7 +121,8 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 	{
 		if (path.empty()) continue;
 
-		std::cerr << path << std::endl;
+		if (!outputOnlyJSON)
+		std::cout << path << std::endl;
 		filedocumentID.first++;
 
 		filedocumentID.second = 0;
@@ -142,7 +150,8 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 		}
 	}
 
-	std::cerr << std::endl;
+	if (!outputOnlyJSON)
+	std::cout << std::endl;
 }
 
 /**
@@ -154,24 +163,23 @@ void makeInvertedFile(const std::vector<std::string>& input_files, InvertedFile_
 struct arguments_t {
 	bool index = false;
 	std::vector<std::string> query;
-	unsigned int documentID = 0;
-
-	arguments_t()
-	: index(false), query(), documentID(0) {}
-
-	void clear() {
-		index = false;
-		query.clear();
-		documentID = 0;
-	}
+	unsigned int documentID;
 };
 
 /// Extrait et parse les arguments passés en ligne de commande.
-bool parseArgs(arguments_t& arguments, int argc, char * argv[])
+bool parseArgs(arguments_t& arguments, int argc, char ** argv)
 {
-	arguments.clear();
+	arguments.index = false;
+	arguments.query.clear();
+	arguments.documentID = 0;
 
 	if (argc <= 0) return false;
+
+	if (streq(argv[0], "json"))
+	{
+		outputOnlyJSON = true;
+		if (argv++, --argc <= 0) return false;
+	}
 
 	if (streq(argv[0], "index"))
 	{
@@ -187,7 +195,7 @@ bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 		}
 		return (argc > 1);
 	}
-	else if (streq(argv[0], "document_json"))
+	else if (streq(argv[0], "document"))
 	{
 		if (argc <= 1) return false;
 		if (!tryParseInt(argv[1], arguments.documentID)) return false;
@@ -206,23 +214,31 @@ bool parseArgs(arguments_t& arguments, int argc, char * argv[])
 */
 bool modeBuildInvertedFile(const std::vector<std::string>& input_files)
 {
+	std::ostringstream os;
+
 	InvertedFile_t IF;
 
-	std::cerr << "Generating the InvertedFile..." << std::endl;
+	os << "Generating the InvertedFile..." << std::endl;
 	makeInvertedFile(input_files, IF);
-	std::cerr << "Generated the InvertedFile successfully." << std::endl;
-	std::cerr << std::endl;
+	os << "Generated the InvertedFile successfully." << std::endl;
+	os << std::endl;
 
-	std::cerr << "Exporting 'InvertedFile.bin'..." << std::endl;
-	if (!IFExport(IF, "InvertedFile.bin"))
+	os << "Exporting 'InvertedFile.bin'..." << std::endl;
+	bool success = IFExport(IF, "InvertedFile.bin");
+	if (!success)
 	{
 		std::cerr << "FATAL ERROR: Unable to export the InvertedFile in 'InvertedFile.bin'." << std::endl;
-		return false;
 	}
-	std::cerr << "Exported 'InvertedFile.bin' successfully." << std::endl;
-	std::cerr << std::endl;
+	else 
+	{
+		os << "Exported 'InvertedFile.bin' successfully." << std::endl;
+		os << std::endl;
+	}
 
-	return true;
+	if (!outputOnlyJSON)
+	std::cout << os.str();
+
+	return success;
 }
 
 /**
@@ -243,88 +259,52 @@ bool modeQuerySearch(std::vector<std::string>& words)
 	{
 		std::cerr << "ERROR: Unable to import 'InvertedFile.bin'." << std::endl;
 		std::cerr << "Run this program with the argument 'index' to generate it." << std::endl;
-		std::cout << "null" << std::endl;
+		std::cerr << std::endl;
 		return false;
 	}
 
+	auto IF_sorted = IF_sort(IF);
 
-	std::vector<std::vector<TA::TF>> tab;
-	for (auto& it: IF)
-	{
-		auto& vec = it.second;
-		std::vector<TA::TF> row; row.reserve(vec.size());
-		for (auto& elem : vec)
-		{
-			TA::TF item;
-			item.d = elem.first;
-			item.frequency = freqTF(elem.second);
-			row.push_back(item);
-		}
-		std::sort(row.begin(), row.end(), [] (TA::TF& f1, TA::TF& f2) {
-			return (f1.frequency > f2.frequency) || (f1.frequency == f2.frequency && f1.d < f2.d);
-		});
-		tab.push_back(row);
-	}
+	SearchResults_t resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	SearchResults_t resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
 
 	TA ta;
-	std::vector<TA::TS> result = ta.TAlgo(10, tab);
-
-	SearchResults_t resultsTA;
-	for (auto& res : result)
-	{
-		DocFreq_t freq;
-		freq.docID = res.d;
-		freq.frequency.first = res.score * 50000;
-		freq.frequency.second = 50000;
-		resultsTA.push_back(freq);
-	}
+	auto resultsTA_not_as_SearchResults_t = ta.TAlgo(10, IF_sorted);
+	SearchResults_t resultsTA = resultsTA_to_SearchResults_t(resultsTA_not_as_SearchResults_t);
 
 	FA fa;
-	fa.FAlgo(10, tab);
-
-	SearchResults_t resultsFA;
-	for (auto& res : fa.result)
-	{
-		DocFreq_t freq;
-		freq.docID = res.d;
-		freq.frequency.first = res.score * 50000;
-		freq.frequency.second = 50000;
-		resultsFA.push_back(freq);
-	}
-
-	// auto aggregate_maps_AND_min = [&](auto& lhs, auto& rhs) {
-	// 	return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>);
-	// };
-	// auto aggregate_maps_OR_max = [&](auto& lhs, auto& rhs) {
-	// 	return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>);
-	// };
-	//
-	// auto resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
-	// auto resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+	fa.FAlgo(10, IF_sorted);
+	SearchResults_t resultsFA = resultsFA_to_SearchResults_t(fa.result);
 
 	auto resultsShow = [&](const SearchResults_t& results, const char* name) {
-		std::cerr << "Top 10 (" << name << "):" << std::endl;
+		if (outputOnlyJSON) return;
+		std::cout << "Top 10 (" << name << "):" << std::endl;
 		int index = 0;
 		for (auto& result : results)
 		{
-			std::cerr
+			std::cout
 				<< (++index) << ". document " << result.docID
 				<< " (frequency: " << freqTF(result.frequency) << ")"
 				<< std::endl;
 		}
-		std::cerr << std::endl;
+		std::cout << std::endl;
 	};
-	//
-	// resultsShow(resultsConjunction, "naive search conjunction");
-	// resultsShow(resultsDisjunction, "naive search disjunction");
-	resultsShow(resultsTA, "TA");
-	resultsShow(resultsFA, "FA");
+	
+	if (!outputOnlyJSON)
+	{
+		resultsShow(resultsConjunction, "naive search conjunction");
+		resultsShow(resultsDisjunction, "naive search disjunction");
 
-	json j;
-	j["TA"] = toJson( resultsTA );
-	j["FA"] = toJson( resultsFA );
-
-	std::cout << j.dump(4) << std::endl;
+		resultsShow(resultsTA, "TA");
+		resultsShow(resultsFA, "FA");
+	}
+	else
+	{
+		json j;
+		j["TA"] = toJson(resultsTA);
+		j["FA"] = toJson(resultsFA);
+		std::cout << j.dump(4) << std::endl;
+	}
 	
 	return true;
 }
@@ -338,14 +318,19 @@ bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocument
 	DocumentJSON_t documentJSON;
 	if (!loadDocumentJSON(input_files, documentID, documentJSON))
 	{
-		std::cout
-			<< "{\"error\":\"Could not load the document with ID "
-			<< documentID
-			<< "\"}" << "\n" << std::flush;
-
-		std::cerr
-			<< "ERROR: Could not load the document with ID "
-			<< documentID << "." << std::endl;
+		if (!outputOnlyJSON)
+		{
+			std::cerr
+				<< "ERROR: Could not load the document with ID "
+				<< documentID << "." << std::endl;
+		}
+		else
+		{
+			std::cout
+				<< "{\"error\":\"Could not load the document with ID "
+				<< documentID
+				<< "\"}" << "\n" << std::flush;
+		}
 
 		return false;
 	}
@@ -362,28 +347,35 @@ bool modeQueryDocument(const std::vector<std::string>& input_files, FileDocument
 */
 bool modeDefault()
 {
+	std::ostringstream os;
+
 	InvertedFile_t IF;
 
-	std::cerr << "Importing 'InvertedFile.bin'..." << std::endl;
-	if (!IFImport(IF, "InvertedFile.bin"))
+	os << "Importing 'InvertedFile.bin'..." << std::endl;
+	bool success = IFImport(IF, "InvertedFile.bin");
+	if (!success)
 	{
 		std::cerr << "Unable to import 'InvertedFile.bin'." << std::endl;
 		std::cerr << "Run this program with the argument 'index' to generate it." << std::endl;
-		return false;
 	}
-	std::cerr << "Imported 'InvertedFile.bin' successfully." << std::endl;
+	else
+	{
+		os << "Imported 'InvertedFile.bin' successfully." << std::endl;
 
-	std::cerr << "InvertedFile contains " << IF.size() << " entries." << std::endl;
-	std::cerr << std::endl;
+		os << "InvertedFile contains " << IF.size() << " entries." << std::endl;
+	}
+	os << std::endl;
+
+	if (!outputOnlyJSON)
+	std::cout << os.str();
 
 	return true;
 }
 
-// =================================
-// ======== Where the magic happens!
-// =================================
 
-// ======== Point d'entrée
+// ==================================
+// ========= Point d'entrée =========
+// ==================================
 
 int main(int argc, char * argv[])
 {
@@ -404,13 +396,13 @@ int main(int argc, char * argv[])
 			std::cout << "Available arguments are:" << '\n'
 				<< "- 'index' to (re)build the InvertedFile" << '\n'
 				<< "- 'query <word> <word> ...' to search for articles" << '\n'
-				<< "- 'document_json <ID>' to get the full contents of an article" << std::endl;
+				<< "- 'document <ID>' to get the full contents of an article" << std::endl;
 			std::cout << std::endl;
 		}
 		else
 		{
 			std::cerr << "ERROR: Unable to parse command line arguments." << std::endl;
-			std::cout << std::endl;
+			std::cerr << std::endl;
 		}
 	}
 
@@ -471,7 +463,10 @@ int main(int argc, char * argv[])
 		}
 
 		std::cerr << "Aborting." << std::endl;
+
+		if (outputOnlyJSON)
 		std::cout << "{\"error\":\"Unknown error (bad try catch)\"}" << std::endl;
+
 		return 1;
 	}
 }

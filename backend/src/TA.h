@@ -1,13 +1,10 @@
 #pragma once
 
-#include <iostream>
-#include <algorithm>
 #include <vector>
-#include <map>
-#include <iterator>
-#include <deque>
-#include <numeric>
-using namespace std;
+
+#include "search.h"
+
+using std::vector;
 
 #include "FA.h"
 
@@ -27,7 +24,22 @@ public:
 	void display_vector(const vector<int> &v);
 	void displayC();
 	void displayTab(vector<vector<TF>> &tab);
-	void step1(int k,vector<vector<TF>> &tab);
-	void step2(int k);
+	void step1(unsigned int k,vector<vector<TF>> &tab);
+	void step2(unsigned int k);
 	vector<TA::TS> TAlgo(int k,vector<vector<TF>> &tab);
 };
+
+inline SearchResults_t resultsTA_to_SearchResults_t(const vector<TA::TS>& resultsTA_not_as_SearchResults_t)
+{
+	SearchResults_t resultsTA;
+	for (const auto& res : resultsTA_not_as_SearchResults_t)
+	{
+		DocFreq_t freq;
+		freq.docID = res.d;
+		freq.frequency.first = static_cast<unsigned int>(res.score * 50000);
+		freq.frequency.second = 50000;
+		resultsTA.push_back(freq);
+	}
+
+	return resultsTA;
+}

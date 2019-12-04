@@ -12,8 +12,6 @@
 using json = nlohmann::json;
 
 
-
-
 template<typename val_t>
 val_t val_min(val_t val1, val_t val2)
 {
@@ -37,9 +35,18 @@ val_t val_zero(val_t)
 }
 
 
-
 typedef std::vector<DocFreq_t> SearchResults_t;
 typedef std::map<DocumentUID_t, Frequency_t> result_t;
+
+inline result_t aggregate_maps_AND_min(result_t& lhs, result_t& rhs)
+{
+	return mapIntersection<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_min<Frequency_t>)>(lhs, rhs, val_min<Frequency_t>);
+}
+inline result_t aggregate_maps_OR_max(result_t& lhs, result_t& rhs)
+{
+	return mapUnion<DocumentUID_t, Frequency_t, Frequency_t, decltype(val_max<Frequency_t>), decltype(val_self<Frequency_t>)>(lhs, rhs, val_max<Frequency_t>, val_self<Frequency_t>);
+}
+
 
 inline json toJson( const SearchResults_t & sr ) {
 

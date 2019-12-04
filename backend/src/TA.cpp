@@ -13,8 +13,19 @@
 	2. Return the top-k seen so far (Step 2)
  * */
 
+#include "utility.h"
+
 #include "TA.h"
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <iterator>
+#include <deque>
+#include <numeric>
 using namespace std;
+
 inline bool sortinrev(const TA::TS &a,const TA::TS &b){
 	return ((a.score > b.score) ||(a.score == b.score && a.d<b.d));
 }
@@ -48,25 +59,28 @@ void TA::InsertC(TF pl, vector<vector<TF>> &tab) {
 	}
 }
 void TA::display_vector(const vector<int> &v){
+	if (outputOnlyJSON) return;
     std::copy(v.begin(), v.end(),
-        std::ostream_iterator<int>(std::cerr, " "));
-    cerr<<endl;
+        std::ostream_iterator<int>(std::cout, " "));
+    std::cout<<std::endl;
 }
 void TA::displayC(){
+	if (outputOnlyJSON) return;
     for(int i=0;i<(int)C.size();i++){
-    	cerr<<C.at(i).d<<" "<<C.at(i).score<<"; ";
+    	std::cout<<C.at(i).d<<" "<<C.at(i).score<<"; ";
     }
-    cerr<<endl;
+    std::cout<<std::endl;
 }
-
 void TA::displayTab(vector<vector<TF>> &tab){
+	if (outputOnlyJSON) return;
     for(vector<TF> vpl: tab){
     	for(TF pl: vpl){
-    		cerr<<pl.d<<" "<<pl.frequency<<"; ";
+    		std::cout<<pl.d<<" "<<pl.frequency<<"; ";
     	}
     }
-    cerr<<endl;
+    std::cout<<std::endl;
 }
+
 bool TA::kDocT(int k){
 	int i=0;
 	for(TS TS: C){
@@ -85,7 +99,7 @@ void TA::sortedAccess(int row,vector<vector<TF>> &tab){
 	t=t/tab.size();
 }
 
-void TA::step1(int k,vector<vector<TF>> &tab){
+void TA::step1(unsigned int k,vector<vector<TF>> &tab){
 	int row=0;
 	if (k>tab.at(0).size()){
 		for (TF tf1:tab.at(0)){
@@ -105,10 +119,10 @@ void TA::step1(int k,vector<vector<TF>> &tab){
 		}
 	}
 }
-void TA::step2(int k){
+void TA::step2(unsigned int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
-	for(int i=0;i<k;i++){
+	for(unsigned int i=0;i<k;i++){
 		if(i<C.size()){
 			result.push_back(C.at(i));
 		}

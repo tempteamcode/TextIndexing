@@ -27,7 +27,7 @@ app.get("/api/regenerate", function( req, res ) {
 
   console.log( "Call document api, regnerate" )
 
-  exec('./build/TextIndexer index ' ).stdout.on('data', (data) => {
+  exec('./build/TextIndexer json index ' ).stdout.on('data', (data) => {
     console.log("Send query " + "")
     console.log(`stdout: ${data}`);
     res.send( data )
@@ -40,7 +40,7 @@ app.get("/api/search", function( req, res ) {
   console.log("Call document api, search", req.query.words )
   let sentOnce = false;
 
-  exec('./build/TextIndexer query ' + req.query.words ).stdout.on('data', (data) => {
+  exec('./build/TextIndexer json query ' + req.query.words ).stdout.on('data', (data) => {
     console.log("Send query " + req.query.words )
     if( data[0] != "{" )
       data = '{"error":"no query"}'
@@ -58,7 +58,7 @@ app.get("/api/document/*", function( req, res ) {
   let documentId = urlSplit[urlSplit.length-1]
   let sentOnce = false;
 
-  exec('./build/TextIndexer document_json ' + documentId).stdout.on('data', (data) => {
+  exec('./build/TextIndexer json document ' + documentId).stdout.on('data', (data) => {
     if( sentOnce ) return;
     console.log("Send document " + documentId)
     if( data[0] != "{" )

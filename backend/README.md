@@ -25,10 +25,10 @@ Un makefile est fourni pour générer l'exécutable TextIndexer (avec la command
 ### Indexation de texte et génération de l'InvertedFile
 
 Pour générer l'InvertedFile sur un corpus de texte, il faut s'assurer qu'un fichier texte
-"inputs.txt" soit présent dans le même dossier que le programme TextIndexer, et contienne
-les chemins (relatifs) des fichiers textes à indexer (un chemin par ligne).
+"inputs.txt" soit présent dans le dossier "ressources" à côté du programme TextIndexer,
+et contienne les chemins (relatifs) des fichiers textes à indexer (un chemin par ligne).
 
-Le contenu du fichier "inputs.txt" pourra être, par exemple :
+Le contenu du fichier "inputs.txt" pourra être, si le dossier "ressources" contient le dossier "latimes" :
 ```
 latimes\la010189
 latimes\la010289
@@ -49,6 +49,6 @@ Après avoir généré l'InvertedFile, il est possible d'exécuter des requêtes
 où "&lt;mots&gt;" est l'ensemble des mots recherchés, séparés par des espaces.
 Le programme donnera alors les 10 résultats les plus pertinents, pour différentes méthodes de recherche.
 
-Pour avoir plus d'informations sur les documents résultats d'une requête, il est possible d'exécuter la commande `./TextIndexer document_json &lt;ID&gt;`,
+Pour avoir plus d'informations sur les documents résultats d'une requête, il est possible d'exécuter la commande `./TextIndexer document &lt;ID&gt;`,
 où "&lt;ID&gt;" est le numéro d'un document tel qu'affiché dans les résultats de recherche.
 Le programme retournera alors la date, le titre, et le contenu de ce document, le tout dans un format JSON.

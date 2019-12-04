@@ -17,8 +17,19 @@ Fagin’s top-k query algorithm (FA)
 4. Return the top-k docs in C (Step 3)
 
 */
+
+#include "utility.h"
+
 #include "FA.h"
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <iterator>
+#include <deque>
 using namespace std;
+
 inline bool sortinrev(const FA::TS &a,const FA::TS &b){
        return ((a.score > b.score) ||(a.score == b.score && a.d<b.d));
 }
@@ -63,28 +74,32 @@ double FA::calculScore(int docID,vector<vector<TF>>& tab){
 }
 void FA::display_vector(const vector<int> &v)
 {
+	if (outputOnlyJSON) return;
     std::copy(v.begin(), v.end(),
-        std::ostream_iterator<int>(std::cerr, " "));
-    cerr << endl;
+        std::ostream_iterator<int>(std::cout, " "));
+    std::cout << std::endl;
 }
 void FA::displayC()
 {
+	if (outputOnlyJSON) return;
 	 for(int i=0;i<(int)C.size();i++){
-	    	cerr<<C.at(i).d<<" "<<C.at(i).score<<"; ";
+	    std::cout<<C.at(i).d<<" "<<C.at(i).score<<"; ";
 	 }
-	 cerr<<endl;
+	 std::cout << std::endl;
 }
-
-void FA::displayTab(vector<vector<TF>> &tab){
+void FA::displayTab(vector<vector<TF>> &tab)
+{
+	if (outputOnlyJSON) return;
     for(vector<TF> vtf: tab){
     	for(TF tf: vtf){
-    		cerr<<tf.d<<" "<<tf.frequency<<"; ";
+    		std::cout<<tf.d<<" "<<tf.frequency<<"; ";
     	}
     }
-    cerr<<endl;
+    std::cout<<std::endl;
 }
-void FA::step1(int k,vector<vector<TF>>& tab){
-	int row=0;
+
+void FA::step1(unsigned int k,vector<vector<TF>>& tab){
+	unsigned int row=0;
 	vector<vector<int>> qt(tab.size());
 	vector<int> v;
 	C.clear();
@@ -95,7 +110,7 @@ void FA::step1(int k,vector<vector<TF>>& tab){
 	}
 	else{
 		TF tf;
-		while((int)C.size()!=k && row <tab.at(0).size() ){
+		while(C.size()!=k && row <tab.at(0).size() ){
 			for (int i=0;i<(int)tab.size();i++){
 				if(tab.at(i).size()>row){
 					tf=tab.at(i).at(row);
@@ -121,10 +136,10 @@ void FA::step2(vector<vector<TF>>& tab){
 	M.clear();
 }
 
-void FA::step3(int k){
+void FA::step3(unsigned int k){
 	result.clear();
 	sort(C.begin(), C.end(), sortinrev);
-	for(int i=0;i<k;i++){
+	for(unsigned int i=0;i<k;i++){
 		if(i<C.size()){
 			result.push_back(C.at(i));
 		}

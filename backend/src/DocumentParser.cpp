@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "utility.h"
 #include "Tokenizer.h"
 #include "Stemmer.h"
 #include "Stopwords.h"
@@ -9,7 +10,9 @@
 
 void print_tags(const DocumentTree_t& tag, const std::string& indent)
 {
-	std::cerr << indent << '<' << tag.name << '>' << std::endl;
+	if (outputOnlyJSON) return;
+
+	std::cout << indent << '<' << tag.name << '>' << std::endl;
 
 	for (auto& subtag : tag.tags)
 	{
@@ -18,13 +21,13 @@ void print_tags(const DocumentTree_t& tag, const std::string& indent)
 
 	if (!tag.data.empty())
 	{
-		std::cerr
+		std::cout
 			<< indent
 			<< (tag.data.size() > 30 ? tag.data.substr(0, 27) + "..." : tag.data)
 			<< std::endl;
 	}
 
-	std::cerr
+	std::cout
 		<< indent << '<' << '/' << tag.name << '>'
 		<< std::endl;
 }
