@@ -4,7 +4,27 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <chrono>
 
+/**
+* Fonction pour chronométrer l'exécution d'une autre fonction en millisecondes.
+* 
+* // exemple, pour mesurer l'exécution de "r = f(true, 'A', 0);" :
+* auto duration = measure_milliseconds(r, f, true, 'A', 0);
+**/
+
+template <typename Function_t, typename Result_t, typename ...Args>
+std::chrono::milliseconds measure_milliseconds(Result_t& result, Function_t function, Args&& ...args)
+{
+	auto begin = std::chrono::high_resolution_clock::now();
+	result = function(std::forward<Args>(args)...);
+	auto end = std::chrono::high_resolution_clock::now();
+
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+	return duration;
+}
+
+/// Permet de limiter les sorties sur cout aux données JSON.
 extern bool outputOnlyJSON;
 
 /// Exceptions personnalisées générées par notre programme.

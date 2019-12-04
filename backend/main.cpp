@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <chrono>
 
 #include "src/utility.h"
 #include "src/files.h"
@@ -263,22 +264,74 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		return false;
 	}
 
+	if (IF.size() == 0)
+	{
+		std::cerr << "ERROR: None of the words of the query are in the InvertedFile!" << std::endl;
+		std::cerr << "The search for documents matching query terms can't be done." << std::endl;
+		std::cerr << std::endl;
+		return false;
+	}
+
+	// FOR DEBUG PURPOSES ONLY
+	/*
+	std::cout << "Keywords:" << std::endl;
+	for (auto& it : IF)
+	{
+		auto& str = it.first;
+		std::cout << "- " << str << " (" << it.second.size() << ")\n";
+	}
+	std::cout << std::endl;
+	*/
+
 	auto IF_sorted = IF_sort(IF);
 
+	auto to_ms = [] (auto duration) {
+		return std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+	};
+	auto timer_begin = [] () {return std::chrono::high_resolution_clock::now(); };
+	auto timer_end = [&] (auto begin) {return to_ms(timer_begin() - begin); };
+
+	auto timer = timer_begin();
 	SearchResults_t resultsConjunction = resultsOrder(searchNaive(IF, aggregate_maps_AND_min), 10);
+	auto time_naiveconjunction = timer_end(timer);
+
+	timer = timer_begin();
 	SearchResults_t resultsDisjunction = resultsOrder(searchNaive(IF, aggregate_maps_OR_max), 10);
+	auto time_naivedisjunction = timer_end(timer);
 
-	TA ta;
-	auto resultsTA_not_as_SearchResults_t = ta.TAlgo(10, IF_sorted);
-	SearchResults_t resultsTA = resultsTA_to_SearchResults_t(resultsTA_not_as_SearchResults_t);
+	SearchResults_t resultsTA;
+	std::chrono::milliseconds time_TA;
+	{
+		std::vector<TS> resultsTA_not_as_SearchResults_t;
+		TA ta;
+		timer = timer_begin();
+		try {
+			resultsTA_not_as_SearchResults_t = ta.TAlgo(10, IF_sorted);
+		} catch (...) {
+			// Sometimes unexpected exceptions happen...
+		}
+		time_TA = timer_end(timer);
+		resultsTA = resultsTA_to_SearchResults_t(resultsTA_not_as_SearchResults_t);
+	}
 
-	FA fa;
-	fa.FAlgo(10, IF_sorted);
-	SearchResults_t resultsFA = resultsFA_to_SearchResults_t(fa.result);
+	SearchResults_t resultsFA;
+	std::chrono::milliseconds time_FA;
+	{
+		std::vector<TS> resultsFA_not_as_SearchResults_t;
+		FA fa;
+		timer = timer_begin();
+		try {
+			fa.FAlgo(10, IF_sorted);
+		} catch (...) {
+			// Sometimes unexpected exceptions happen...
+		}
+		time_FA = timer_end(timer);
+		resultsFA = resultsFA_to_SearchResults_t(fa.result);
+	}
 
-	auto resultsShow = [&](const SearchResults_t& results, const char* name) {
+	auto resultsShow = [&] (const SearchResults_t& results, const char* name, std::chrono::milliseconds duration_ms) {
 		if (outputOnlyJSON) return;
-		std::cout << "Top 10 (" << name << "):" << std::endl;
+		std::cout << "Top 10 (" << name << ", took " << duration_ms.count() << "ms):" << std::endl;
 		int index = 0;
 		for (auto& result : results)
 		{
@@ -292,11 +345,11 @@ bool modeQuerySearch(std::vector<std::string>& words)
 	
 	if (!outputOnlyJSON)
 	{
-		resultsShow(resultsConjunction, "naive search conjunction");
-		resultsShow(resultsDisjunction, "naive search disjunction");
+		resultsShow(resultsConjunction, "naive search conjunction", time_naiveconjunction);
+		resultsShow(resultsDisjunction, "naive search disjunction", time_naivedisjunction);
 
-		resultsShow(resultsTA, "TA");
-		resultsShow(resultsFA, "FA");
+		resultsShow(resultsTA, "TA", time_TA);
+		resultsShow(resultsFA, "FA", time_FA);
 	}
 	else
 	{
