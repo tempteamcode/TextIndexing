@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <string>
 
 #include "src/utility.h"
 #include "src/files.h"
@@ -246,8 +247,10 @@ bool modeBuildInvertedFile(const std::vector<std::string>& input_files)
 * Affiche les résultats d'une recherche.
 * @return true en cas de succès, false si une erreur s'est produite
 */
-bool modeQuerySearch(std::vector<std::string>& words)
+bool modeQuerySearch(const std::vector<std::string>& input_files, std::vector<std::string>& words)
 {
+	// LOAD THE ENTRIES OF THE INVERTED FILE CORRESPONDING TO THE QUERY WORDS
+
 	InvertedFile_t IF;
 
 	for (std::string& word : words)
@@ -272,9 +275,9 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		return false;
 	}
 
-	// FOR DEBUG PURPOSES ONLY
+	// for debug purposes only
 	/*
-	std::cout << "Keywords:" << std::endl;
+	std::cout << "Words:" << std::endl;
 	for (auto& it : IF)
 	{
 		auto& str = it.first;
@@ -282,6 +285,9 @@ bool modeQuerySearch(std::vector<std::string>& words)
 	}
 	std::cout << std::endl;
 	*/
+
+
+	// SEARCH AND MEASURE SEARCH TIME
 
 	auto IF_sorted = IF_sort(IF);
 
@@ -329,6 +335,33 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		resultsFA = resultsFA_to_SearchResults_t(fa.result);
 	}
 
+
+	// FIND TITLES OF DOCUMENTS IN THE SEARCH RESULTS
+
+	std::map<DocumentUID_t, DocumentJSON_t> resultsJSON;
+	auto loadDocument = [&] (DocumentUID_t ID)
+	{
+		if (resultsJSON.find(ID) != resultsJSON.end()) return; // document already loaded
+
+		auto& documentJSON = resultsJSON[ID];
+		try {
+			loadDocumentJSON(input_files, ID, documentJSON);
+		} catch (...) {
+			// Not being able to load a document here is not so dramatic.
+		}
+
+		for (char& c : documentJSON.title) if (c == '\n') c = ' ';
+	};
+
+	std::vector<DocumentUID_t> resultsUIDs;
+	for (auto& result : resultsConjunction) loadDocument(result.docID);
+	for (auto& result : resultsDisjunction) loadDocument(result.docID);
+	for (auto& result : resultsFA) loadDocument(result.docID);
+	for (auto& result : resultsTA) loadDocument(result.docID);
+
+
+	// SHOW THE RESULTS
+
 	auto resultsShow = [&] (const SearchResults_t& results, const char* name, std::chrono::milliseconds duration_ms) {
 		if (outputOnlyJSON) return;
 		std::cout << "Top 10 (" << name << ", took " << duration_ms.count() << "ms):" << std::endl;
@@ -337,7 +370,12 @@ bool modeQuerySearch(std::vector<std::string>& words)
 		{
 			std::cout
 				<< (++index) << ". document " << result.docID
-				<< " (frequency: " << freqTF(result.frequency) << ")"
+				<< " (score: " << freqTF(result.frequency) << ")";
+
+			if (resultsJSON.find(result.docID) != resultsJSON.end())
+			std::cout << ": \"" << strstrip(resultsJSON[result.docID].title).str() << "\"";
+
+			std::cout
 				<< std::endl;
 		}
 		std::cout << std::endl;
@@ -469,7 +507,7 @@ int main(int argc, char * argv[])
 		}
 		else if (!arguments.query.empty())
 		{
-			success = modeQuerySearch(arguments.query);
+			success = modeQuerySearch(input_files, arguments.query);
 		}
 		else if (arguments.documentID > 0)
 		{

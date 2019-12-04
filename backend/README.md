@@ -45,10 +45,11 @@ Le programme "TextIndexer" en a effectivement besoin pour retrouver les document
 
 ### Requêtes
 
-Après avoir généré l'InvertedFile, il est possible d'exécuter des requêtes avec la commande `./TextIndexer query &lt;mots&gt;`,
+Après avoir généré l'InvertedFile, il est possible d'exécuter des requêtes avec la commande `./TextIndexer query <mots>;`,
 où "&lt;mots&gt;" est l'ensemble des mots recherchés, séparés par des espaces.
 Le programme donnera alors les 10 résultats les plus pertinents, pour différentes méthodes de recherche.
+Le temps d'exécution de chaque méthode de recherche est donné.
 
-Pour avoir plus d'informations sur les documents résultats d'une requête, il est possible d'exécuter la commande `./TextIndexer document &lt;ID&gt;`,
+Pour avoir plus d'informations sur les documents résultats d'une requête, il est possible d'exécuter la commande `./TextIndexer document <ID>;`,
 où "&lt;ID&gt;" est le numéro d'un document tel qu'affiché dans les résultats de recherche.
 Le programme retournera alors la date, le titre, et le contenu de ce document, le tout dans un format JSON.
